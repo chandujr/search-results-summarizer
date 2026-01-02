@@ -1,0 +1,216 @@
+<div
+  id="ai-summary-container"
+  style="
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+    border-left: 4px solid #8b5cf6;
+  "
+>
+  <div style="display: flex; align-items: center; margin-bottom: 12px">
+    <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #8b5cf6" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+    </svg>
+    <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600">AI Summary</h3>
+  </div>
+  <div id="ai-summary-content" style="color: #cbd5e1; line-height: 1.6; font-size: 15px; min-height: 60px">
+    <div style="display: flex; align-items: center; gap: 8px; color: #64748b">
+      <div
+        class="spinner"
+        style="
+          width: 16px;
+          height: 16px;
+          border: 2px solid #334155;
+          border-top-color: #8b5cf6;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        "
+      ></div>
+      <span>Generating summary...</span>
+    </div>
+  </div>
+  <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #64748b">
+    Powered by {{MODEL_NAME}}
+  </div>
+</div>
+<style>
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Code block styling */
+  #ai-summary-content pre {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  #ai-summary-content code {
+    background-color: rgba(139, 92, 246, 0.1);
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: "Consolas", "Monaco", "Courier New", monospace;
+    font-size: 0.9em;
+  }
+
+  #ai-summary-content pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.9em;
+  }
+
+  /* Other markdown elements */
+  #ai-summary-content blockquote {
+    border-left: 4px solid #8b5cf6;
+    margin: 10px 0;
+    padding-left: 15px;
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  #ai-summary-content ul,
+  #ai-summary-content ol {
+    margin: 10px 0;
+    padding-left: 25px;
+  }
+
+  #ai-summary-content li {
+    margin: 5px 0;
+  }
+
+  #ai-summary-content p {
+    margin: 10px 0;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+<script>
+  (function() {
+    const container = document.getElementById('ai-summary-content');
+    const query = {{QUERY_JSON}};
+    const results = {{RESULTS_JSON}};
+
+    console.log('[AI Summary] Starting fetch stream');
+
+    let summaryText = '';
+    const converter = new showdown.Converter({
+      parseImgDimensions: true,
+      simplifiedAutoLink: true,
+      strikethrough: true,
+      tables: true,
+      tasklists: true,
+      ghCodeBlocks: true,
+      ghMentions: true,
+      ghMentionsLink: 'https://github.com/{u}',
+      smoothLivePreview: true,
+      smartIndentationFix: true,
+      emoji: true,
+      underline: true,
+      ellipsis: true,
+      completeHTMLDocument: false,
+      metadata: false,
+      splitAdjacentBlockquotes: false
+    });
+
+    fetch(window.location.origin + '/api/summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query, results })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      function readStream() {
+        reader.read().then(({ done, value }) => {
+          if (done) {
+            // Process any remaining data in the buffer
+            if (buffer.trim()) {
+              try {
+                const data = JSON.parse(buffer);
+                if (data.error) {
+                  console.error('[AI Summary] Error:', data.error);
+                  container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
+                  return;
+                }
+
+                if (data.done) {
+                  console.log('[AI Summary] Complete');
+                  return;
+                }
+
+                if (data.content) {
+                  summaryText += data.content;
+                  // Convert markdown to HTML and set as innerHTML
+                  container.innerHTML = converter.makeHtml(summaryText);
+                }
+              } catch (e) {
+                console.error('[AI Summary] Parse error with remaining buffer:', e);
+              }
+            }
+            console.log('[AI Summary] Stream completed');
+            return;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process all complete JSON objects in the buffer
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.substring(0, newlineIndex);
+            buffer = buffer.substring(newlineIndex + 1);
+
+            if (line.trim() === '') continue;
+
+            try {
+              const data = JSON.parse(line);
+
+              if (data.error) {
+                console.error('[AI Summary] Error:', data.error);
+                container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
+                return;
+              }
+
+              if (data.done) {
+                console.log('[AI Summary] Complete');
+                return;
+              }
+
+              if (data.content) {
+                summaryText += data.content;
+                // Convert markdown to HTML and set as innerHTML
+                container.innerHTML = converter.makeHtml(summaryText);
+              }
+            } catch (e) {
+              console.error('[AI Summary] Parse error:', e, 'Line:', line);
+            }
+          }
+
+          readStream();
+        });
+      }
+
+      readStream();
+    })
+    .catch(error => {
+      console.error('[AI Summary] Fetch error:', error);
+      container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
+    });
+  })();
+</script>

@@ -4,10 +4,23 @@ const cheerio = require("cheerio");
 const OpenAI = require("openai");
 const showdown = require("showdown");
 const https = require("https");
+const fs = require("fs");
+const path = require("path");
 const app = express();
 
 // Create a showdown converter
 const converter = new showdown.Converter();
+
+// Load and cache the HTML template
+let summaryTemplate;
+try {
+  const templatePath = path.join(__dirname, "templates", "summary-template.html");
+  summaryTemplate = fs.readFileSync(templatePath, "utf8");
+  console.log("✅ Summary template loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading summary template:", error);
+  summaryTemplate = "<div>Template loading error</div>";
+}
 
 const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8080";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -122,116 +135,11 @@ Summary:`,
 function injectStreamingSummary(html, query, results) {
   if (!SUMMARY_ENABLED || !results || results.length === 0) return html;
 
-  const summaryHTML = `
-    <div id="ai-summary-container" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                border-radius: 12px;
-                padding: 24px;
-                margin: 20px 0;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-                border: 1px solid #334155;
-                border-left: 4px solid #8b5cf6;">
-      <div style="display: flex; align-items: center; margin-bottom: 12px;">
-        <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #8b5cf6;" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-        </svg>
-        <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600;">AI Summary</h3>
-      </div>
-      <div id="ai-summary-content" style="color: #cbd5e1;
-                  line-height: 1.6;
-                  font-size: 15px;
-                  min-height: 60px;">
-        <div style="display: flex; align-items: center; gap: 8px; color: #64748b;">
-          <div class="spinner" style="width: 16px; height: 16px; border: 2px solid #334155; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <span>Generating summary...</span>
-        </div>
-      </div>
-      <div style="margin-top: 12px;
-                  padding-top: 12px;
-                  border-top: 1px solid #334155;
-                  font-size: 12px;
-                  color: #64748b;">
-        Powered by ${OPENROUTER_MODEL.split("/")[1] || "AI"}
-      </div>
-    </div>
-    <style>
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
-    <script>
-      (function() {
-        const container = document.getElementById('ai-summary-content');
-        const query = ${JSON.stringify(query)};
-        const results = ${JSON.stringify(results)};
-
-        console.log('[AI Summary] Starting fetch stream');
-
-        let summaryText = '';
-        const converter = new showdown.Converter();
-
-        fetch(window.location.origin + '/api/summary', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query, results })
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-
-          function readStream() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                console.log('[AI Summary] Stream completed');
-                return;
-              }
-
-              const text = decoder.decode(value, { stream: true });
-              const lines = text.split('\\n').filter(line => line.trim());
-
-              lines.forEach(line => {
-                try {
-                  const data = JSON.parse(line);
-
-                  if (data.error) {
-                    console.error('[AI Summary] Error:', data.error);
-                    container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
-                    return;
-                  }
-
-                  if (data.done) {
-                    console.log('[AI Summary] Complete');
-                    return;
-                  }
-
-                  if (data.content) {
-                    summaryText += data.content;
-                    // Convert markdown to HTML and set as innerHTML
-                    container.innerHTML = converter.makeHtml(summaryText);
-                  }
-                } catch (e) {
-                  console.error('[AI Summary] Parse error:', e);
-                }
-              });
-
-              readStream();
-            });
-          }
-
-          readStream();
-        })
-        .catch(error => {
-          console.error('[AI Summary] Fetch error:', error);
-          container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
-        });
-      })();
-    </script>`;
+  // Replace placeholders in the template with actual values
+  let summaryHTML = summaryTemplate
+    .replace(/{{MODEL_NAME}}/g, OPENROUTER_MODEL.split("/")[1] || "AI")
+    .replace(/{{QUERY_JSON}}/g, JSON.stringify(query))
+    .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results));
 
   // Rewrite URLs to use proxy
   html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
