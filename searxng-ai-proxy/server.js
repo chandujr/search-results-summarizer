@@ -2,8 +2,12 @@ const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const OpenAI = require("openai");
+const showdown = require("showdown");
 const https = require("https");
 const app = express();
+
+// Create a showdown converter
+const converter = new showdown.Converter();
 
 const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8080";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -154,6 +158,7 @@ function injectStreamingSummary(html, query, results) {
         to { transform: rotate(360deg); }
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
     <script>
       (function() {
         const container = document.getElementById('ai-summary-content');
@@ -163,6 +168,7 @@ function injectStreamingSummary(html, query, results) {
         console.log('[AI Summary] Starting fetch stream');
 
         let summaryText = '';
+        const converter = new showdown.Converter();
 
         fetch(window.location.origin + '/api/summary', {
           method: 'POST',
@@ -206,7 +212,8 @@ function injectStreamingSummary(html, query, results) {
 
                   if (data.content) {
                     summaryText += data.content;
-                    container.textContent = summaryText;
+                    // Convert markdown to HTML and set as innerHTML
+                    container.innerHTML = converter.makeHtml(summaryText);
                   }
                 } catch (e) {
                   console.error('[AI Summary] Parse error:', e);
