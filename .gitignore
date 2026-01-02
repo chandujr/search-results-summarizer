@@ -1,0 +1,44 @@
+# --------------------
+# Environment variables (secrets)
+# --------------------
+.env
+.env.*
+
+# --------------------
+# Node.js
+# --------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --------------------
+# Build / runtime output
+# --------------------
+dist/
+build/
+coverage/
+
+# --------------------
+# Docker
+# --------------------
+*.log
+.docker/
+docker-data/
+docker-volumes/
+
+# --------------------
+# OS / Editor junk
+# --------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# --------------------
+# Git (never commit these)
+# --------------------
+.git/
