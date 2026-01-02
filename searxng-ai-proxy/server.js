@@ -73,6 +73,12 @@ ${context}
 Summary:`,
         },
       ],
+      reasoning: {
+        // One of the following (not both):
+        effort: "medium", // Can be "xhigh", "high", "medium", "low", "minimal" or "none" (OpenAI-style)
+        // Optional: Default is false. All models support this.
+        exclude: true, // Set to true to exclude reasoning tokens from response
+      },
       max_tokens: 500,
       stream: true,
     });
