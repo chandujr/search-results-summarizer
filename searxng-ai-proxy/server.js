@@ -1,5 +1,7 @@
 const express = require('express');
 const axios = require('axios');
+const cheerio = require('cheerio');
+const https = require('https');
 const app = express();
 
 const SEARXNG_URL = process.env.SEARXNG_URL || 'http://localhost:8080';
@@ -20,32 +22,56 @@ async function generateSummary(query, results) {
       `[${i + 1}] ${r.title}\n${r.content || r.url}`
     ).join('\n\n');
 
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: OPENROUTER_MODEL,
-        messages: [{
-          role: 'user',
-          content: `Based on these search results for the query "${query}", provide a concise summary (2-3 paragraphs maximum) that answers the query:
+    // Retry configuration
+    const maxRetries = 3;
+    const baseTimeout = 30000;
+
+    // Force IPv4 with custom HTTPS agent
+    const httpsAgent = new https.Agent({
+      family: 4, // Force IPv4
+      keepAlive: true,
+      timeout: 60000,
+    });
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await axios.post(
+          'https://openrouter.ai/api/v1/chat/completions',
+          {
+            model: OPENROUTER_MODEL,
+            messages: [{
+              role: 'user',
+              content: `Based on these search results for the query "${query}", provide a concise summary (2-3 paragraphs maximum) that answers the query:
 
 ${context}
 
 Summary:`
-        }],
-        max_tokens: 500
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'http://localhost:3000',
-          'X-Title': 'SearXNG AI Proxy'
-        },
-        timeout: 15000
-      }
-    );
+            }],
+            max_tokens: 500
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'http://localhost:3000',
+              'X-Title': 'SearXNG AI Proxy'
+            },
+            timeout: baseTimeout * attempt,
+            httpsAgent: httpsAgent
+          }
+        );
 
     return response.data.choices[0].message.content.trim();
+  } catch (retryError) {
+    if (attempt === maxRetries) {
+      throw retryError;
+    }
+
+    // Wait before retrying (exponential backoff)
+    const delayMs = Math.pow(2, attempt) * 1000;
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
   } catch (error) {
     console.error('Summary generation failed:', error.message);
     return null;
@@ -123,16 +149,31 @@ app.all('*', async (req, res) => {
         response.headers['content-type']?.includes('text/html')) {
 
       const html = response.data.toString();
-      const resultsMatch = html.match(/"results"\s*:\s*(\[[^\]]+\])/);
+      const $ = cheerio.load(html);
 
-      if (resultsMatch) {
+      // Extract search results from SearXNG HTML structure
+      const results = [];
+      $('article.result').each((i, elem) => {
+        const $elem = $(elem);
+        const title = $elem.find('h3 a').first().text().trim();
+        const url = $elem.find('h3 a').first().attr('href');
+        const content = $elem.find('p.content').first().text().trim();
+
+        if (title && url) {
+          results.push({ title, url, content });
+        }
+      });
+
+      if (results.length > 0) {
         try {
-          const results = JSON.parse(resultsMatch[1]);
           const summary = await generateSummary(req.query.q, results);
-          const enhancedHTML = injectSummary(html, summary, req.query.q);
-          return res.status(response.status).send(enhancedHTML);
+
+          if (summary) {
+            const enhancedHTML = injectSummary(html, summary, req.query.q);
+            return res.status(response.status).send(enhancedHTML);
+          }
         } catch (parseError) {
-          console.error('Failed to parse results:', parseError.message);
+          console.error('Failed to generate summary:', parseError.message);
         }
       }
     }
