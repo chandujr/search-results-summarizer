@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
+const OpenAI = require("openai");
 const https = require("https");
 const app = express();
 
@@ -13,76 +14,106 @@ const MAX_RESULTS = parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-async function generateSummary(query, results) {
-  if (!OPENROUTER_API_KEY || !SUMMARY_ENABLED) return null;
+// Force IPv4 for all HTTP/HTTPS requests
+const httpsAgent = new https.Agent({
+  family: 4,
+  keepAlive: true,
+  timeout: 60000,
+});
+
+// Initialize OpenRouter client with IPv4 agent
+const openrouter = new OpenAI({
+  apiKey: OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "http://localhost:3000",
+    "X-Title": "SearXNG AI Proxy",
+  },
+  httpAgent: httpsAgent,
+});
+
+// Streaming endpoint for AI summaries (POST request to avoid URL length limits)
+app.post("/api/summary", async (req, res) => {
+  console.log("📨 Summary request received");
+
+  if (!OPENROUTER_API_KEY || !SUMMARY_ENABLED) {
+    console.error("❌ Summary not enabled or API key missing");
+    return res.status(400).json({ error: "Summary not enabled or API key missing" });
+  }
+
+  const { query, results } = req.body;
+
+  if (!query || !results) {
+    console.error("❌ Missing query or results");
+    return res.status(400).json({ error: "Missing query or results" });
+  }
 
   try {
+    console.log(`🔍 Generating summary for: "${query}"`);
     const topResults = results.slice(0, MAX_RESULTS);
     const context = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
 
-    // Retry configuration
-    const maxRetries = 3;
-    const baseTimeout = 30000;
+    // Set up streaming response headers
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Transfer-Encoding", "chunked");
+    res.setHeader("Cache-Control", "no-cache");
+    res.flushHeaders();
 
-    // Force IPv4 with custom HTTPS agent
-    const httpsAgent = new https.Agent({
-      family: 4, // Force IPv4
-      keepAlive: true,
-      timeout: 60000,
-    });
+    console.log(`🤖 Calling OpenRouter with model: ${OPENROUTER_MODEL}`);
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await axios.post(
-          "https://openrouter.ai/api/v1/chat/completions",
-          {
-            model: OPENROUTER_MODEL,
-            messages: [
-              {
-                role: "user",
-                content: `Based on these search results for the query "${query}", provide a concise summary (2-3 paragraphs maximum) that answers the query:
+    const stream = await openrouter.chat.completions.create({
+      model: OPENROUTER_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: `Based on these search results for the query "${query}", provide a concise summary (2-3 paragraphs maximum) that answers the query:
 
 ${context}
 
 Summary:`,
-              },
-            ],
-            max_tokens: 500,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": "http://localhost:3000",
-              "X-Title": "SearXNG AI Proxy",
-            },
-            timeout: baseTimeout * attempt,
-            httpsAgent: httpsAgent,
-          },
-        );
+        },
+      ],
+      max_tokens: 500,
+      stream: true,
+    });
 
-        return response.data.choices[0].message.content.trim();
-      } catch (retryError) {
-        if (attempt === maxRetries) {
-          throw retryError;
-        }
+    console.log("✅ Stream started");
+    let chunkCount = 0;
 
-        // Wait before retrying (exponential backoff)
-        const delayMs = Math.pow(2, attempt) * 1000;
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      if (content) {
+        chunkCount++;
+        res.write(JSON.stringify({ content }) + "\n");
       }
     }
-  } catch (error) {
-    console.error("Summary generation failed:", error.message);
-    return null;
-  }
-}
 
-function injectSummary(html, summary, query) {
-  if (!summary) return html;
+    console.log(`✅ Stream completed (${chunkCount} chunks)`);
+    res.write(JSON.stringify({ done: true }) + "\n");
+    res.end();
+  } catch (error) {
+    console.error("❌ Streaming error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      status: error.status,
+      type: error.type,
+      code: error.code,
+    });
+
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message || "Unknown error" });
+    } else {
+      res.write(JSON.stringify({ error: error.message || "Unknown error" }) + "\n");
+      res.end();
+    }
+  }
+});
+
+function injectStreamingSummary(html, query, results) {
+  if (!SUMMARY_ENABLED || !results || results.length === 0) return html;
 
   const summaryHTML = `
-    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    <div id="ai-summary-container" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border-radius: 12px;
                 padding: 24px;
                 margin: 20px 0;
@@ -95,10 +126,15 @@ function injectSummary(html, summary, query) {
         </svg>
         <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600;">AI Summary</h3>
       </div>
-      <div style="color: #cbd5e1;
+      <div id="ai-summary-content" style="color: #cbd5e1;
                   line-height: 1.6;
                   font-size: 15px;
-                  white-space: pre-wrap;">${summary}</div>
+                  min-height: 60px;">
+        <div style="display: flex; align-items: center; gap: 8px; color: #64748b;">
+          <div class="spinner" style="width: 16px; height: 16px; border: 2px solid #334155; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <span>Generating summary...</span>
+        </div>
+      </div>
       <div style="margin-top: 12px;
                   padding-top: 12px;
                   border-top: 1px solid #334155;
@@ -106,14 +142,85 @@ function injectSummary(html, summary, query) {
                   color: #64748b;">
         Powered by ${OPENROUTER_MODEL.split("/")[1] || "AI"}
       </div>
-    </div>`;
+    </div>
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <script>
+      (function() {
+        const container = document.getElementById('ai-summary-content');
+        const query = ${JSON.stringify(query)};
+        const results = ${JSON.stringify(results)};
 
-  // Rewrite main search form action to use proxy
-  html = html.replace(/<form[^>]*id=["']search["'][^>]*>/gi, (match) => {
-    return match.replace(/action=["']\/search["']/gi, 'action="/search"');
-  });
+        console.log('[AI Summary] Starting fetch stream');
 
-  // Rewrite search form action and hrefs to use proxy
+        let summaryText = '';
+
+        fetch(window.location.origin + '/api/summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query, results })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          function readStream() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                console.log('[AI Summary] Stream completed');
+                return;
+              }
+
+              const text = decoder.decode(value, { stream: true });
+              const lines = text.split('\\n').filter(line => line.trim());
+
+              lines.forEach(line => {
+                try {
+                  const data = JSON.parse(line);
+
+                  if (data.error) {
+                    console.error('[AI Summary] Error:', data.error);
+                    container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
+                    return;
+                  }
+
+                  if (data.done) {
+                    console.log('[AI Summary] Complete');
+                    return;
+                  }
+
+                  if (data.content) {
+                    summaryText += data.content;
+                    container.textContent = summaryText;
+                  }
+                } catch (e) {
+                  console.error('[AI Summary] Parse error:', e);
+                }
+              });
+
+              readStream();
+            });
+          }
+
+          readStream();
+        })
+        .catch(error => {
+          console.error('[AI Summary] Fetch error:', error);
+          container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
+        });
+      })();
+    </script>`;
+
+  // Rewrite URLs to use proxy
   html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
   html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
 
@@ -174,16 +281,8 @@ app.all("*", async (req, res) => {
       });
 
       if (results.length > 0) {
-        try {
-          const summary = await generateSummary(query, results);
-
-          if (summary) {
-            const enhancedHTML = injectSummary(html, summary, query);
-            return res.status(response.status).send(enhancedHTML);
-          }
-        } catch (parseError) {
-          console.error("Failed to generate summary:", parseError.message);
-        }
+        const enhancedHTML = injectStreamingSummary(html, query, results);
+        return res.status(response.status).send(enhancedHTML);
       }
     }
 
@@ -199,5 +298,5 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ SearXNG AI Proxy running on port ${PORT}`);
   console.log(`📍 Proxying to: ${SEARXNG_URL}`);
   console.log(`🤖 AI Model: ${OPENROUTER_MODEL}`);
-  console.log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled" : "Disabled"}`);
+  console.log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
 });
