@@ -108,6 +108,15 @@ function injectSummary(html, summary, query) {
       </div>
     </div>`;
 
+  // Rewrite main search form action to use proxy
+  html = html.replace(/<form[^>]*id=["']search["'][^>]*>/gi, (match) => {
+    return match.replace(/action=["']\/search["']/gi, 'action="/search"');
+  });
+
+  // Rewrite search form action and hrefs to use proxy
+  html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
+  html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
+
   const resultsMarker = /<div[^>]*id=["']results["'][^>]*>/i;
   if (resultsMarker.test(html)) {
     return html.replace(resultsMarker, (match) => match + summaryHTML);
@@ -124,7 +133,8 @@ function injectSummary(html, summary, query) {
 app.all("*", async (req, res) => {
   try {
     const targetUrl = `${SEARXNG_URL}${req.url}`;
-    const isSearchRequest = req.query.q && req.query.q.trim().length > 0;
+    const query = req.query.q || req.body.q;
+    const isSearchRequest = query && query.trim().length > 0;
 
     const response = await axios({
       method: req.method,
@@ -165,10 +175,10 @@ app.all("*", async (req, res) => {
 
       if (results.length > 0) {
         try {
-          const summary = await generateSummary(req.query.q, results);
+          const summary = await generateSummary(query, results);
 
           if (summary) {
-            const enhancedHTML = injectSummary(html, summary, req.query.q);
+            const enhancedHTML = injectSummary(html, summary, query);
             return res.status(response.status).send(enhancedHTML);
           }
         } catch (parseError) {
