@@ -82,27 +82,28 @@ function injectSummary(html, summary, query) {
   if (!summary) return html;
 
   const summaryHTML = `
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border-radius: 12px;
                 padding: 24px;
                 margin: 20px 0;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                border-left: 4px solid #fbbf24;">
+                box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+                border: 1px solid #334155;
+                border-left: 4px solid #8b5cf6;">
       <div style="display: flex; align-items: center; margin-bottom: 12px;">
-        <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #fbbf24;" viewBox="0 0 24 24">
+        <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #8b5cf6;" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
         </svg>
-        <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">AI Summary</h3>
+        <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600;">AI Summary</h3>
       </div>
-      <div style="color: rgba(255,255,255,0.95);
+      <div style="color: #cbd5e1;
                   line-height: 1.6;
                   font-size: 15px;
                   white-space: pre-wrap;">${summary}</div>
       <div style="margin-top: 12px;
                   padding-top: 12px;
-                  border-top: 1px solid rgba(255,255,255,0.2);
+                  border-top: 1px solid #334155;
                   font-size: 12px;
-                  color: rgba(255,255,255,0.7);">
+                  color: #64748b;">
         Powered by ${OPENROUTER_MODEL.split("/")[1] || "AI"}
       </div>
     </div>`;
