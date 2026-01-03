@@ -32,9 +32,12 @@ Edit `.env` and add your OpenRouter API key:
 
 ```bash
 OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
+OPENROUTER_MODEL=model-id-here
 ```
 
 Get your API key from: https://openrouter.ai/keys
+
+See all models: https://openrouter.ai/models
 
 ### 3. Start Services
 
@@ -62,31 +65,13 @@ You should see search results with an AI summary at the top!
 
 ## 🎛️ Configuration Options
 
-Edit `.env` to customize:
+Edit `docker-compose.yml` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OPENROUTER_API_KEY` | - | Your OpenRouter API key (required) |
-| `OPENROUTER_MODEL` | `anthropic/claude-3.5-sonnet` | AI model to use |
+|`SEARXNG_URL` | `http://localhost:8080` | Existing SearXNG URL |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `5` | Number of results to summarize |
-
-### Recommended Models
-
-- **anthropic/claude-3.5-sonnet** - Best quality ($3/1M tokens)
-- **anthropic/claude-3-haiku** - Fast & cheap ($0.25/1M tokens)
-- **openai/gpt-4o-mini** - Budget option ($0.15/1M tokens)
-
-See all models: https://openrouter.ai/models
-
-## 📊 Estimated Costs
-
-Each search summary costs approximately:
-- Claude 3.5 Sonnet: ~$0.002-0.005 per search
-- Claude 3 Haiku: ~$0.0002-0.0005 per search
-- GPT-4o Mini: ~$0.0001-0.0003 per search
-
-(Based on typical 300-500 token summaries)
 
 ## 🛠️ Useful Commands
 
@@ -102,6 +87,9 @@ docker-compose down
 
 # Restart after config change
 docker-compose restart searxng-ai-proxy
+
+# Rebuild
+docker-compose up -d --build
 
 # Temporarily disable summaries
 docker-compose exec searxng-ai-proxy sh -c 'SUMMARY_ENABLED=false npm start'
@@ -130,6 +118,7 @@ That's it! No global files, no system pollution.
 **Summary not appearing?**
 - Check logs: `docker-compose logs searxng-ai-proxy`
 - Verify API key in `.env`
+- Verify AI model ID in `.env`
 - Ensure `SUMMARY_ENABLED=true`
 
 **"Proxy Error" message?**
@@ -137,7 +126,7 @@ That's it! No global files, no system pollution.
 - Verify network connectivity between containers
 
 **Slow summaries?**
-- Switch to faster model (claude-3-haiku or gpt-4o-mini)
+- Switch to faster model
 - Reduce `MAX_RESULTS_FOR_SUMMARY`
 
 ## 🔒 Privacy Note
@@ -149,4 +138,4 @@ That's it! No global files, no system pollution.
 
 ## 📝 License
 
-MIT - Do whatever you want with it!
+GPL-3.0

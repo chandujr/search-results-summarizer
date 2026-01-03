@@ -8,7 +8,7 @@ services:
     environment:
       - SEARXNG_URL=http://localhost:8080
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - OPENROUTER_MODEL=xiaomi/mimo-v2-flash:free # Change model here
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
       - SUMMARY_ENABLED=true
       - MAX_RESULTS_FOR_SUMMARY=5
     restart: unless-stopped

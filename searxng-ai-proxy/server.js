@@ -24,7 +24,7 @@ try {
 
 const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8080";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "xiaomi/mimo-v2-flash:free";
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5;
 
