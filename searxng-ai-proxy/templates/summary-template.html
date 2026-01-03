@@ -133,11 +133,12 @@
         throw new Error('Network response was not ok');
       }
 
-      // First try to parse as JSON to check if summary was skipped
-      return response.text().then(text => {
-        try {
-          const data = JSON.parse(text);
-          // If we get here, it's a JSON response (not streaming)
+      // Check if the response is JSON (skipped) or streaming
+      const contentType = response.headers.get('content-type');
+
+      if (contentType && contentType.includes('application/json')) {
+        // This is a JSON response (summary was skipped)
+        return response.json().then(data => {
           if (data.skipped) {
             container.innerHTML = `
               <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8;">
@@ -147,51 +148,17 @@
                 <span>${data.reason}</span>
               </div>
             `;
-            return;
           }
-        } catch (e) {
-          // Not a valid JSON, so it's probably a streaming response
-          // Convert text back to a stream for processing
-        }
-
-        // Process as streaming response
-        const stream = new Response(text, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: response.headers
         });
-
-        const reader = stream.body.getReader();
+      } else {
+        // This is a streaming response
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
 
         function readStream() {
           reader.read().then(({ done, value }) => {
             if (done) {
-              // Process any remaining data in the buffer
-              if (buffer.trim()) {
-                try {
-                  const data = JSON.parse(buffer);
-                  if (data.error) {
-                    console.error('[AI Summary] Error:', data.error);
-                    container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
-                    return;
-                  }
-
-                  if (data.done) {
-                    console.log('[AI Summary] Complete');
-                    return;
-                  }
-
-                  if (data.content) {
-                    summaryText += data.content;
-                    // Convert markdown to HTML and set as innerHTML
-                    container.innerHTML = converter.makeHtml(summaryText);
-                  }
-                } catch (e) {
-                  console.error('[AI Summary] Parse error with remaining buffer:', e);
-                }
-              }
               console.log('[AI Summary] Stream completed');
               return;
             }
@@ -222,7 +189,7 @@
 
                 if (data.content) {
                   summaryText += data.content;
-                  // Convert markdown to HTML and set as innerHTML
+                  // Convert markdown to HTML and update the display incrementally
                   container.innerHTML = converter.makeHtml(summaryText);
                 }
               } catch (e) {
@@ -231,11 +198,14 @@
             }
 
             readStream();
+          }).catch(error => {
+            console.error('[AI Summary] Stream reading error:', error);
+            container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
           });
         }
 
         readStream();
-      });
+      }
     })
     .catch(error => {
       console.error('[AI Summary] Fetch error:', error);
