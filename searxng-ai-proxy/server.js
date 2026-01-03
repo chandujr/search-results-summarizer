@@ -65,6 +65,20 @@ app.post("/api/summary", async (req, res) => {
     return res.status(400).json({ error: "Missing query or results" });
   }
 
+  // Count keywords in the query
+  const keywords = query.trim().split(/\s+/);
+  const keywordCount = keywords.length;
+  const resultCount = results.length;
+
+  // Check if we have enough keywords and results to generate a summary
+  if (keywordCount < 3 || resultCount < 3) {
+    console.log(`⚠️ Summary skipped: ${keywordCount} keywords (need 3+), ${resultCount} results (need 3+)`);
+    return res.status(200).json({
+      skipped: true,
+      reason: keywordCount < 3 ? `Not enough keywords (${keywordCount}/3)` : `Not enough results (${resultCount}/3)`,
+    });
+  }
+
   try {
     console.log(`🔍 Generating summary for: "${query}"`);
     const topResults = results.slice(0, MAX_RESULTS);
@@ -134,6 +148,17 @@ Summary:`,
 
 function injectStreamingSummary(html, query, results) {
   if (!SUMMARY_ENABLED || !results || results.length === 0) return html;
+
+  // Count keywords in the query
+  const keywords = query.trim().split(/\s+/);
+  const keywordCount = keywords.length;
+  const resultCount = results.length;
+
+  // Check if we have enough keywords and results to inject summary
+  if (keywordCount < 3 || resultCount < 3) {
+    console.log(`⚠️ Summary injection skipped: ${keywordCount} keywords (need 3+), ${resultCount} results (need 3+)`);
+    return html;
+  }
 
   // Replace placeholders in the template with actual values
   let summaryHTML = summaryTemplate

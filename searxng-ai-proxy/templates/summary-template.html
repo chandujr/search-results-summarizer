@@ -133,17 +133,82 @@
         throw new Error('Network response was not ok');
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      // First try to parse as JSON to check if summary was skipped
+      return response.text().then(text => {
+        try {
+          const data = JSON.parse(text);
+          // If we get here, it's a JSON response (not streaming)
+          if (data.skipped) {
+            container.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8;">
+                <svg style="width: 16px; height: 16px; fill: #64748b;" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <span>${data.reason}</span>
+              </div>
+            `;
+            return;
+          }
+        } catch (e) {
+          // Not a valid JSON, so it's probably a streaming response
+          // Convert text back to a stream for processing
+        }
 
-      function readStream() {
-        reader.read().then(({ done, value }) => {
-          if (done) {
-            // Process any remaining data in the buffer
-            if (buffer.trim()) {
+        // Process as streaming response
+        const stream = new Response(text, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers
+        });
+
+        const reader = stream.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        function readStream() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              // Process any remaining data in the buffer
+              if (buffer.trim()) {
+                try {
+                  const data = JSON.parse(buffer);
+                  if (data.error) {
+                    console.error('[AI Summary] Error:', data.error);
+                    container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
+                    return;
+                  }
+
+                  if (data.done) {
+                    console.log('[AI Summary] Complete');
+                    return;
+                  }
+
+                  if (data.content) {
+                    summaryText += data.content;
+                    // Convert markdown to HTML and set as innerHTML
+                    container.innerHTML = converter.makeHtml(summaryText);
+                  }
+                } catch (e) {
+                  console.error('[AI Summary] Parse error with remaining buffer:', e);
+                }
+              }
+              console.log('[AI Summary] Stream completed');
+              return;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+
+            // Process all complete JSON objects in the buffer
+            let newlineIndex;
+            while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+              const line = buffer.substring(0, newlineIndex);
+              buffer = buffer.substring(newlineIndex + 1);
+
+              if (line.trim() === '') continue;
+
               try {
-                const data = JSON.parse(buffer);
+                const data = JSON.parse(line);
+
                 if (data.error) {
                   console.error('[AI Summary] Error:', data.error);
                   container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
@@ -161,52 +226,16 @@
                   container.innerHTML = converter.makeHtml(summaryText);
                 }
               } catch (e) {
-                console.error('[AI Summary] Parse error with remaining buffer:', e);
+                console.error('[AI Summary] Parse error:', e, 'Line:', line);
               }
             }
-            console.log('[AI Summary] Stream completed');
-            return;
-          }
 
-          buffer += decoder.decode(value, { stream: true });
+            readStream();
+          });
+        }
 
-          // Process all complete JSON objects in the buffer
-          let newlineIndex;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            const line = buffer.substring(0, newlineIndex);
-            buffer = buffer.substring(newlineIndex + 1);
-
-            if (line.trim() === '') continue;
-
-            try {
-              const data = JSON.parse(line);
-
-              if (data.error) {
-                console.error('[AI Summary] Error:', data.error);
-                container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
-                return;
-              }
-
-              if (data.done) {
-                console.log('[AI Summary] Complete');
-                return;
-              }
-
-              if (data.content) {
-                summaryText += data.content;
-                // Convert markdown to HTML and set as innerHTML
-                container.innerHTML = converter.makeHtml(summaryText);
-              }
-            } catch (e) {
-              console.error('[AI Summary] Parse error:', e, 'Line:', line);
-            }
-          }
-
-          readStream();
-        });
-      }
-
-      readStream();
+        readStream();
+      });
     })
     .catch(error => {
       console.error('[AI Summary] Fetch error:', error);
