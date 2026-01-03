@@ -42,3 +42,8 @@ Thumbs.db
 # Git (never commit these)
 # --------------------
 .git/
+
+# --------------------
+# Others
+# --------------------
+tests/
