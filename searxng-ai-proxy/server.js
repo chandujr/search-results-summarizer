@@ -11,6 +11,7 @@ const app = express();
 // Simple rate limiter to prevent spam
 const requestCache = new Map();
 const RATE_LIMIT_MS = 1000; // 1 second between requests
+const MAX_TOKENS = 750;
 
 // Clear the request cache at startup
 requestCache.clear();
@@ -111,7 +112,9 @@ app.post("/api/summary", async (req, res) => {
             Prefer direct, useful answers.
             Use the provided sources only.
             Do not speculate or add outside knowledge.
-            When appropriate, explain concepts clearly rather than summarizing opinions.`,
+            When appropriate, explain concepts clearly rather than summarizing opinions.
+
+            IMPORTANT: Your response must not exceed ${MAX_TOKENS} tokens. Be concise and prioritize the most important information.`,
           },
           {
             role: "user",
@@ -122,6 +125,8 @@ app.post("/api/summary", async (req, res) => {
 
             TASK:
             Produce a helpful search-style response similar to a modern search engine.
+
+            IMPORTANT: Limit your response to ${MAX_TOKENS} tokens maximum.
 
             GUIDELINES:
             - If the query asks "what is / how does / explain", provide a clear explanation first
@@ -136,7 +141,7 @@ app.post("/api/summary", async (req, res) => {
             ${resultsText}`,
           },
         ],
-        max_tokens: 750,
+        max_tokens: MAX_TOKENS,
         stream: true,
       });
 

@@ -10,7 +10,7 @@ services:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL}
       - SUMMARY_ENABLED=true
-      - MAX_RESULTS_FOR_SUMMARY=5
+      - MAX_RESULTS_FOR_SUMMARY=7
     restart: unless-stopped
 # Note: Your existing SearXNG container (running separately with --network host)
 # is not managed by this docker-compose file
