@@ -74,6 +74,12 @@ app.post("/api/summary", async (req, res) => {
   const keywordCount = keywords.length;
   const resultCount = results.length;
 
+  const dateToday = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   // Check if we have enough keywords and results to generate a summary
   if (keywordCount < 3 || resultCount < 3) {
     return res.status(200).json({
@@ -100,6 +106,7 @@ app.post("/api/summary", async (req, res) => {
             role: "system",
             content: `You are a general-purpose search assistant.
             Your goal is to help the user understand the topic they searched for.
+            Today's date is ${dateToday}. Use this information for any date or age calculations.
 
             Prefer direct, useful answers.
             Use the provided sources only.
@@ -123,6 +130,7 @@ app.post("/api/summary", async (req, res) => {
             - If multiple sources agree on facts, state them directly
             - If sources disagree, note the disagreement
             - Use only the information in the sources
+            - For any date-related calculations or age calculations, use today's date ${dateToday}
 
             SOURCES:
             ${resultsText}`,
