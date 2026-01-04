@@ -52,6 +52,38 @@ const RESOURCE_TRIGGERS = [
   "framework",
 ];
 
+// Function to determine if a query should be summarized
+function shouldSummarize(query, results) {
+  // Count keywords in the query
+  const keywords = query.trim().split(/\s+/);
+  const keywordCount = keywords.length;
+  const resultCount = results.length;
+
+  // Check if we have enough keywords and results
+  if (keywordCount < 3 || resultCount < 3) {
+    return {
+      shouldSummarize: false,
+      reason: keywordCount < 3 ? `Not enough keywords (${keywordCount}/3)` : `Not enough results (${resultCount}/3)`,
+    };
+  }
+
+  // Analyze query intent to determine if summary would be valuable
+  const queryLower = query.toLowerCase();
+  let skipReason = "";
+
+  // Check for resource-finding indicators
+  for (const word of RESOURCE_TRIGGERS) {
+    if (queryLower.includes(word)) {
+      return {
+        shouldSummarize: false,
+        reason: `Query appears to be resource-finding: "${word}"`,
+      };
+    }
+  }
+
+  return { shouldSummarize: true };
+}
+
 // Rate limiting - prevents abuse
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -101,43 +133,17 @@ app.post("/api/summary", async (req, res) => {
     return res.status(400).json({ error: "Missing query or results" });
   }
 
-  // Count keywords in the query
-  const keywords = query.trim().split(/\s+/);
-  const keywordCount = keywords.length;
-  const resultCount = results.length;
-
   const dateToday = new Date().toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
-  // Check if we have enough keywords and results
-  if (keywordCount < 3 || resultCount < 3) {
+  const summarizeResult = shouldSummarize(query, results);
+  if (!summarizeResult.shouldSummarize) {
     return res.status(200).json({
       skipped: true,
-      reason: keywordCount < 3 ? `Not enough keywords (${keywordCount}/3)` : `Not enough results (${resultCount}/3)`,
-    });
-  }
-
-  // Analyze query intent to determine if summary would be valuable
-  const queryLower = query.toLowerCase();
-  let shouldSummarize = true; // Default to generating summary
-  let skipReason = "";
-
-  // Check for resource-finding indicators
-  for (const word of RESOURCE_TRIGGERS) {
-    if (queryLower.includes(word)) {
-      shouldSummarize = false;
-      skipReason = `Query appears to be resource-finding: "${word}"`;
-      break;
-    }
-  }
-
-  if (!shouldSummarize) {
-    return res.status(200).json({
-      skipped: true,
-      reason: skipReason || "Query doesn't benefit from AI summary",
+      reason: summarizeResult.reason || "Query doesn't benefit from AI summary",
     });
   }
 
@@ -235,34 +241,6 @@ function injectStreamingSummary(html, query, results) {
     return html;
   }
 
-  // Count keywords in the query
-  const keywords = query.trim().split(/\s+/);
-  const keywordCount = keywords.length;
-  const resultCount = results.length;
-
-  // Check if we have enough keywords and results
-  if (keywordCount < 3 || resultCount < 3) {
-    return html;
-  }
-
-  // Analyze query intent to determine if summary would be valuable
-  const queryLower = query.toLowerCase();
-  let shouldSummarize = true; // Default to generating summary
-  let skipReason = "";
-
-  // Check for resource-finding indicators
-  for (const word of RESOURCE_TRIGGERS) {
-    if (queryLower.includes(word)) {
-      shouldSummarize = false;
-      skipReason = `Query appears to be resource-finding: "${word}"`;
-      break;
-    }
-  }
-
-  if (!shouldSummarize) {
-    return html;
-  }
-
   // Replace placeholders in the template with actual values
   let summaryHTML = summaryTemplate
     .replace(/{{MODEL_NAME}}/g, OPENROUTER_MODEL.split("/")[1] || "AI")
@@ -355,8 +333,14 @@ app.all("*", async (req, res) => {
       console.log(`🔍 Extracted ${results.length} results from HTML`);
       if (results.length > 0) {
         if (!isRateLimited) {
-          const enhancedHTML = injectStreamingSummary(html, query, results);
-          return res.status(response.status).send(enhancedHTML);
+          // Check if we should summarize before injecting the UI
+          const summarizeResult = shouldSummarize(query, results);
+          if (summarizeResult.shouldSummarize) {
+            const enhancedHTML = injectStreamingSummary(html, query, results);
+            return res.status(response.status).send(enhancedHTML);
+          } else {
+            return res.status(response.status).send(response.data);
+          }
         } else {
           // For rate limited requests, still return the page but without the summary
           return res.status(response.status).send(response.data);

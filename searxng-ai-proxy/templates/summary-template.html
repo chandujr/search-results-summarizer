@@ -225,15 +225,9 @@
       // Check if the response is JSON (skipped) or streaming
       const contentType = response.headers.get('content-type');
 
-      if (contentType && contentType.includes('application/json')) {
-        // This is a JSON response (summary was skipped)
-        return response.json().then(data => {
-          if (data.skipped) {
-            // Hide the entire summary container when summary is not needed
-            document.getElementById('ai-summary-container').style.display = 'none';
-          }
-        });
-      } else {
+      // Since the template is only injected when we should summarize,
+      // we always expect a streaming response
+      {
         // This is a streaming response
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
