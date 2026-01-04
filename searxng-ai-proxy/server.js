@@ -9,6 +9,13 @@ const path = require("path");
 const rateLimit = require("express-rate-limit");
 const app = express();
 
+// Helper function to log with time only
+function log(message) {
+  const now = new Date();
+  const time = now.toTimeString().split(" ")[0]; // Get HH:MM:SS part
+  console.log(`[${time}] ${message}`);
+}
+
 // Simple rate limiter to prevent spam
 const requestCache = new Map();
 const RATE_LIMIT_MS = 1000; // 1 second between requests
@@ -25,7 +32,7 @@ let summaryTemplate;
 try {
   const templatePath = path.join(__dirname, "templates", "summary-template.html");
   summaryTemplate = fs.readFileSync(templatePath, "utf8");
-  console.log("✅ Summary template loaded successfully");
+  log("✅ Summary template loaded successfully");
 } catch (error) {
   console.error("❌ Error loading summary template:", error);
   summaryTemplate = "<div>Template loading error</div>";
@@ -166,7 +173,7 @@ function createAIPrompt(query, resultsText, dateToday) {
 
 // Function to handle streaming response to the client
 async function handleStreamResponse(stream, res) {
-  console.log("✅ Stream started");
+  log("✅ Stream started");
   let chunkCount = 0;
 
   for await (const chunk of stream) {
@@ -179,14 +186,14 @@ async function handleStreamResponse(stream, res) {
     }
   }
 
-  console.log(`✅ Stream completed (${chunkCount} chunks)`);
+  log(`✅ Stream completed (${chunkCount} chunks)`);
   res.write(JSON.stringify({ done: true }) + "\n");
   res.end();
 }
 
 // Function to handle errors in streaming responses
 function handleStreamError(res, error) {
-  console.error("Streaming error:", error.message);
+  log("❌ Streaming error: " + error.message);
 
   if (!res.headersSent) {
     res.status(500).json({ error: error.message || "Unknown error" });
@@ -199,7 +206,7 @@ function handleStreamError(res, error) {
 // Streaming endpoint for AI summaries (POST request to avoid URL length limits)
 app.post("/api/summary", async (req, res) => {
   if (!OPENROUTER_API_KEY || !SUMMARY_ENABLED) {
-    console.error("❌ Summary not enabled or API key missing");
+    log("❌ Summary not enabled or API key missing");
     return res.status(400).json({ error: "Summary not enabled or API key missing" });
   }
 
@@ -244,7 +251,7 @@ app.post("/api/summary", async (req, res) => {
 
       await handleStreamResponse(stream, res);
     } catch (streamError) {
-      console.error("Stream error:", streamError.message);
+      log("❌ Stream error: " + streamError.message);
       throw streamError;
     }
   } catch (error) {
@@ -336,7 +343,7 @@ app.all("*", async (req, res) => {
     });
 
     if (isSearchRequest && SUMMARY_ENABLED && response.headers["content-type"]?.includes("text/html")) {
-      console.log(`🔍 Processing HTML response for summary injection`);
+      log(`🔍 Processing HTML response for summary injection`);
       const html = response.data.toString();
       const $ = cheerio.load(html);
 
@@ -353,7 +360,7 @@ app.all("*", async (req, res) => {
         }
       });
 
-      console.log(`🔍 Extracted ${results.length} results from HTML`);
+      log(`🔍 Extracted ${results.length} results from HTML`);
       if (results.length > 0) {
         if (!isRateLimited) {
           // Check if we should summarize before injecting the UI
@@ -373,15 +380,15 @@ app.all("*", async (req, res) => {
 
     res.status(response.status).send(response.data);
   } catch (error) {
-    console.error("Proxy error:", error.message);
+    log("❌ Proxy error: " + error.message);
     res.status(500).send("Proxy Error: " + error.message);
   }
 });
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ SearXNG AI Proxy running on port ${PORT}`);
-  console.log(`📍 Proxying to: ${SEARXNG_URL}`);
-  console.log(`🤖 AI Model: ${OPENROUTER_MODEL}`);
-  console.log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
+  log(`✅ SearXNG AI Proxy running on port ${PORT}`);
+  log(`📍 Proxying to: ${SEARXNG_URL}`);
+  log(`🤖 AI Model: ${OPENROUTER_MODEL}`);
+  log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
 });
