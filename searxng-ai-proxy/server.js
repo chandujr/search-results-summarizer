@@ -6,6 +6,7 @@ const showdown = require("showdown");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const rateLimit = require("express-rate-limit");
 const app = express();
 
 // Simple rate limiter to prevent spam
@@ -35,6 +36,21 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5;
+
+// Rate limiting - prevents abuse
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 requests per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many requests, please try again later.",
+    retryAfter: "15 minutes",
+  },
+});
+
+// Apply rate limiting to all API routes
+app.use("/api/", globalLimiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -135,6 +151,7 @@ app.post("/api/summary", async (req, res) => {
             - If multiple sources agree on facts, state them directly
             - If sources disagree, note the disagreement
             - Use only the information in the sources
+            - Do not add hyperlinks in the summary
             - For any date-related calculations or age calculations, use today's date ${dateToday}
 
             SOURCES:
