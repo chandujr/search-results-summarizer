@@ -213,14 +213,6 @@ app.post("/api/summary", async (req, res) => {
     year: "numeric",
   });
 
-  const summarizeResult = shouldSummarize(query, results);
-  if (!summarizeResult.shouldSummarize) {
-    return res.status(200).json({
-      skipped: true,
-      reason: summarizeResult.reason || "Query doesn't benefit from AI summary",
-    });
-  }
-
   try {
     const topResults = results.slice(0, MAX_RESULTS);
     const resultsText = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
@@ -348,20 +340,12 @@ app.all("*", async (req, res) => {
       });
 
       log(`🔍 Extracted ${results.length} results from HTML`);
-      if (results.length > 0) {
-        if (!isRateLimited) {
-          // Check if we should summarize before injecting the UI
-          const summarizeResult = shouldSummarize(query, results);
-          if (summarizeResult.shouldSummarize) {
-            const enhancedHTML = injectStreamingSummary(html, query, results);
-            return res.status(response.status).send(enhancedHTML);
-          } else {
-            return res.status(response.status).send(response.data);
-          }
-        } else {
-          // For rate limited requests, still return the page but without the summary
-          return res.status(response.status).send(response.data);
-        }
+      // Check if we should summarize
+      const summarizeResult = shouldSummarize(query, results);
+      if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
+        // Inject the summary only if validation passed
+        const enhancedHTML = injectStreamingSummary(html, query, results);
+        return res.status(response.status).send(enhancedHTML);
       }
     }
 
