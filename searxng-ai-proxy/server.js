@@ -37,6 +37,21 @@ const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5;
 
+// Keywords that indicate a resource-finding query (less likely to need summary)
+const RESOURCE_TRIGGERS = [
+  "github",
+  "download",
+  "repository",
+  "link",
+  "url",
+  "tool",
+  "software",
+  "program",
+  "app",
+  "library",
+  "framework",
+];
+
 // Rate limiting - prevents abuse
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -97,11 +112,32 @@ app.post("/api/summary", async (req, res) => {
     year: "numeric",
   });
 
-  // Check if we have enough keywords and results to generate a summary
+  // Check if we have enough keywords and results
   if (keywordCount < 3 || resultCount < 3) {
     return res.status(200).json({
       skipped: true,
       reason: keywordCount < 3 ? `Not enough keywords (${keywordCount}/3)` : `Not enough results (${resultCount}/3)`,
+    });
+  }
+
+  // Analyze query intent to determine if summary would be valuable
+  const queryLower = query.toLowerCase();
+  let shouldSummarize = true; // Default to generating summary
+  let skipReason = "";
+
+  // Check for resource-finding indicators
+  for (const word of RESOURCE_TRIGGERS) {
+    if (queryLower.includes(word)) {
+      shouldSummarize = false;
+      skipReason = `Query appears to be resource-finding: "${word}"`;
+      break;
+    }
+  }
+
+  if (!shouldSummarize) {
+    return res.status(200).json({
+      skipped: true,
+      reason: skipReason || "Query doesn't benefit from AI summary",
     });
   }
 
@@ -204,8 +240,26 @@ function injectStreamingSummary(html, query, results) {
   const keywordCount = keywords.length;
   const resultCount = results.length;
 
-  // Check if we have enough keywords and results to inject summary
+  // Check if we have enough keywords and results
   if (keywordCount < 3 || resultCount < 3) {
+    return html;
+  }
+
+  // Analyze query intent to determine if summary would be valuable
+  const queryLower = query.toLowerCase();
+  let shouldSummarize = true; // Default to generating summary
+  let skipReason = "";
+
+  // Check for resource-finding indicators
+  for (const word of RESOURCE_TRIGGERS) {
+    if (queryLower.includes(word)) {
+      shouldSummarize = false;
+      skipReason = `Query appears to be resource-finding: "${word}"`;
+      break;
+    }
+  }
+
+  if (!shouldSummarize) {
     return html;
   }
 
