@@ -9,7 +9,6 @@ const path = require("path");
 const rateLimit = require("express-rate-limit");
 const app = express();
 
-// Helper function to log with time only
 function log(message) {
   const now = new Date();
   const time = now.toTimeString().split(" ")[0]; // Get HH:MM:SS part
@@ -23,9 +22,6 @@ const MAX_TOKENS = 750;
 
 // Clear the request cache at startup
 requestCache.clear();
-
-// Create a showdown converter
-const converter = new showdown.Converter();
 
 // Load and cache the HTML template
 let summaryTemplate;
@@ -76,9 +72,7 @@ function shouldSummarize(query, results) {
 
   // Analyze query intent to determine if summary would be valuable
   const queryLower = query.toLowerCase();
-  let skipReason = "";
 
-  // Check for resource-finding indicators
   for (const word of RESOURCE_TRIGGERS) {
     if (queryLower.includes(word)) {
       return {
@@ -94,7 +88,7 @@ function shouldSummarize(query, results) {
 // Rate limiting - prevents abuse
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // 30 requests per 15 min per IP
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -109,7 +103,7 @@ app.use("/api/", globalLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Force IPv4 for all HTTP/HTTPS requests
+// Force IPv4 for all HTTPS requests
 const httpsAgent = new https.Agent({
   family: 4,
   keepAlive: true,
@@ -127,7 +121,6 @@ const openrouter = new OpenAI({
   httpAgent: httpsAgent,
 });
 
-// Function to create the AI prompt for summarization
 function createAIPrompt(query, resultsText, dateToday) {
   return [
     {
@@ -171,7 +164,6 @@ function createAIPrompt(query, resultsText, dateToday) {
   ];
 }
 
-// Function to handle streaming response to the client
 async function handleStreamResponse(stream, res) {
   log("✅ Stream started");
   let chunkCount = 0;
@@ -191,7 +183,6 @@ async function handleStreamResponse(stream, res) {
   res.end();
 }
 
-// Function to handle errors in streaming responses
 function handleStreamError(res, error) {
   log("❌ Streaming error: " + error.message);
 
@@ -234,7 +225,6 @@ app.post("/api/summary", async (req, res) => {
     const topResults = results.slice(0, MAX_RESULTS);
     const resultsText = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
 
-    // Set up streaming response headers
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Transfer-Encoding", "chunked");
     res.setHeader("Cache-Control", "no-cache");
@@ -266,7 +256,6 @@ function rewriteUrls(html) {
   return html;
 }
 
-// Function to inject the summary template into HTML
 function injectStreamingSummary(html, query, results) {
   if (!SUMMARY_ENABLED || !results || results.length === 0) {
     return html;
@@ -278,7 +267,6 @@ function injectStreamingSummary(html, query, results) {
     .replace(/{{QUERY_JSON}}/g, JSON.stringify(query))
     .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results));
 
-  // Rewrite URLs to use proxy
   html = rewriteUrls(html);
 
   const resultsMarker = /<div[^>]*id=["']results["'][^>]*>/i;
@@ -313,7 +301,6 @@ app.all("*", async (req, res) => {
       maxRedirects: 5,
     });
 
-    // Simple rate limiting - check if this exact query was recently processed
     let isRateLimited = false;
 
     if (isSearchRequest && query) {

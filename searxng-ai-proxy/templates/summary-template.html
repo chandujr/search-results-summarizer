@@ -156,7 +156,6 @@
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
     let summaryText = '';
 
-    // Initialize showdown converter
     const converter = new showdown.Converter({
       parseImgDimensions: true,
       simplifiedAutoLink: true,
@@ -176,7 +175,6 @@
       splitAdjacentBlockquotes: false
     });
 
-    // Function to show error message
     function showError(message) {
       container.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
@@ -238,7 +236,6 @@
       return false; // Continue processing
     }
 
-    // Set up event listeners
     toggleBtn.addEventListener('click', toggleExpand);
 
     console.log('[Search Results Summary] Starting fetch stream');
@@ -310,8 +307,6 @@
           throw new Error('Network response was not ok');
         }
 
-        // Since the template is only injected when we should summarize,
-        // we always expect a streaming response
         return processStream(response);
       } catch (error) {
         console.error('[Search Results Summary] Fetch error:', error);
