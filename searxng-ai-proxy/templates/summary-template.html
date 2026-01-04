@@ -144,39 +144,19 @@
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
   (function() {
+    // DOM elements
     const container = document.getElementById('ai-summary-content');
     const expandBtnContainer = document.getElementById('summary-expand-btn');
     const toggleBtn = document.getElementById('toggle-summary');
     const query = {{QUERY_JSON}};
     const results = {{RESULTS_JSON}};
 
+    // State
     let isExpanded = false;
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
-
-    // Toggle function for expanding/collapsing
-    toggleBtn.addEventListener('click', function() {
-      isExpanded = !isExpanded;
-      const fadeOverlay = document.getElementById('summary-fade-overlay');
-
-      if (isExpanded) {
-        container.style.maxHeight = 'none';
-        toggleBtn.textContent = 'Show less';
-        fadeOverlay.style.display = 'none';
-      } else {
-        container.style.maxHeight = maxHeight + 'px';
-        toggleBtn.textContent = 'Show more';
-        // Show the fade overlay when content is collapsed
-        if (container.scrollHeight > maxHeight) {
-          fadeOverlay.style.display = 'block';
-        }
-        // Scroll to the summary container to make sure it's visible
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-
-    console.log('[Search Results Summary] Starting fetch stream');
-
     let summaryText = '';
+
+    // Initialize showdown converter
     const converter = new showdown.Converter({
       parseImgDimensions: true,
       simplifiedAutoLink: true,
@@ -196,104 +176,150 @@
       splitAdjacentBlockquotes: false
     });
 
-    fetch(window.location.origin + '/api/summary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query, results })
-    })
-    .then(response => {
-      // Handle rate limit errors specifically
-      if (response.status === 429) {
-        return response.json().then(data => {
-          container.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
-              <svg style="width: 16px; height: 16px; fill: #ef4444;" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-              </svg>
-              <span>${data.error || 'Rate limit exceeded. Please try again later.'}</span>
-            </div>
-          `;
+    // Function to show error message
+    function showError(message) {
+      container.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
+          <svg style="width: 16px; height: 16px; fill: #ef4444;" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>${message}</span>
+        </div>
+      `;
+    }
+
+    // Function to handle expand/collapse
+    function toggleExpand() {
+      isExpanded = !isExpanded;
+      const fadeOverlay = document.getElementById('summary-fade-overlay');
+
+      if (isExpanded) {
+        container.style.maxHeight = 'none';
+        toggleBtn.textContent = 'Show less';
+        fadeOverlay.style.display = 'none';
+      } else {
+        container.style.maxHeight = maxHeight + 'px';
+        toggleBtn.textContent = 'Show more';
+        // Show the fade overlay when content is collapsed
+        if (container.scrollHeight > maxHeight) {
+          fadeOverlay.style.display = 'block';
+        }
+        // Scroll to the summary container to make sure it's visible
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Function to check and update expand button visibility
+    function checkExpandButton() {
+      if (!isExpanded && container.scrollHeight > maxHeight) {
+        expandBtnContainer.style.display = 'block';
+        document.getElementById('summary-fade-overlay').style.display = 'block';
+      }
+    }
+
+    // Function to process a chunk of streaming data
+    function processChunk(data) {
+      if (data.error) {
+        console.error('[Search Results Summary] Error:', data.error);
+        showError(data.error);
+        return true; // Signal to stop processing
+      }
+
+      if (data.done) {
+        console.log('[Search Results Summary] Complete');
+        return true; // Signal to stop processing
+      }
+
+      if (data.content) {
+        summaryText += data.content;
+        container.innerHTML = converter.makeHtml(summaryText);
+        checkExpandButton();
+      }
+      return false; // Continue processing
+    }
+
+    // Set up event listeners
+    toggleBtn.addEventListener('click', toggleExpand);
+
+    console.log('[Search Results Summary] Starting fetch stream');
+
+    // Function to handle streaming response
+    async function processStream(response) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      function readStream() {
+        return reader.read().then(({ done, value }) => {
+          if (done) {
+            console.log('[Search Results Summary] Stream completed');
+            return;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process all complete JSON objects in the buffer
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.substring(0, newlineIndex);
+            buffer = buffer.substring(newlineIndex + 1);
+
+            if (line.trim() === '') continue;
+
+            try {
+              const data = JSON.parse(line);
+
+              // Process the chunk and stop if it returns true
+              if (processChunk(data)) {
+                return;
+              }
+            } catch (e) {
+              console.error('[Search Results Summary] Parse error:', e, 'Line:', line);
+            }
+          }
+
+          return readStream();
         });
       }
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      return readStream().catch(error => {
+        console.error('[Search Results Summary] Stream reading error:', error);
+        showError('Connection error: ' + error.message);
+      });
+    }
 
-      // Check if the response is JSON (skipped) or streaming
-      const contentType = response.headers.get('content-type');
+    // Main function to fetch and process the summary
+    async function fetchSummary() {
+      try {
+        const response = await fetch(window.location.origin + '/api/summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query, results })
+        });
 
-      // Since the template is only injected when we should summarize,
-      // we always expect a streaming response
-      {
-        // This is a streaming response
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        function readStream() {
-          reader.read().then(({ done, value }) => {
-            if (done) {
-              console.log('[Search Results Summary] Stream completed');
-              return;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            // Process all complete JSON objects in the buffer
-            let newlineIndex;
-            while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-              const line = buffer.substring(0, newlineIndex);
-              buffer = buffer.substring(newlineIndex + 1);
-
-              if (line.trim() === '') continue;
-
-              try {
-                const data = JSON.parse(line);
-
-                if (data.error) {
-                  console.error('[Search Results Summary] Error:', data.error);
-                  container.innerHTML = '<span style="color: #ef4444;">Failed: ' + data.error + '</span>';
-                  return;
-                }
-
-                if (data.done) {
-                  console.log('[Search Results Summary] Complete');
-                  return;
-                }
-
-                if (data.content) {
-                  summaryText += data.content;
-                  // Convert markdown to HTML and update the display incrementally
-                  container.innerHTML = converter.makeHtml(summaryText);
-
-                  // Check if content is overflowing and show/hide expand button
-                  if (!isExpanded && container.scrollHeight > maxHeight) {
-                    expandBtnContainer.style.display = 'block';
-                    // Show the fade overlay when content is collapsed and overflowing
-                    document.getElementById('summary-fade-overlay').style.display = 'block';
-                  }
-                }
-              } catch (e) {
-                console.error('[Search Results Summary] Parse error:', e, 'Line:', line);
-              }
-            }
-
-            readStream();
-          }).catch(error => {
-            console.error('[Search Results Summary] Stream reading error:', error);
-            container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
-          });
+        // Handle rate limit errors specifically
+        if (response.status === 429) {
+          const data = await response.json();
+          showError(data.error || 'Rate limit exceeded. Please try again later.');
+          return;
         }
 
-        readStream();
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        // Since the template is only injected when we should summarize,
+        // we always expect a streaming response
+        return processStream(response);
+      } catch (error) {
+        console.error('[Search Results Summary] Fetch error:', error);
+        showError('Connection error: ' + error.message);
       }
-    })
-    .catch(error => {
-      console.error('[Search Results Summary] Fetch error:', error);
-      container.innerHTML = '<span style="color: #ef4444;">Connection error: ' + error.message + '</span>';
-    });
+    }
+
+    // Start the process
+    fetchSummary();
   })();
 </script>

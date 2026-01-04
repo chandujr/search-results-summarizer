@@ -120,6 +120,82 @@ const openrouter = new OpenAI({
   httpAgent: httpsAgent,
 });
 
+// Function to create the AI prompt for summarization
+function createAIPrompt(query, resultsText, dateToday) {
+  return [
+    {
+      role: "system",
+      content: `You are a general-purpose search assistant.
+      Your goal is to help the user understand the topic they searched for.
+      Today's date is ${dateToday}. Use this information for any date or age calculations.
+
+      Prefer direct, useful answers.
+      Use the provided sources only.
+      Do not speculate or add outside knowledge.
+      When appropriate, explain concepts clearly rather than summarizing opinions.
+
+      IMPORTANT: Your response must not exceed ${MAX_TOKENS} tokens. Be concise and prioritize the most important information.`,
+    },
+    {
+      role: "user",
+      content: `QUERY:
+      ${query}
+
+      Below are search results relevant to the query.
+
+      TASK:
+      Produce a helpful search-style response similar to a modern search engine.
+
+      IMPORTANT: Limit your response to ${MAX_TOKENS} tokens maximum.
+
+      GUIDELINES:
+      - If the query asks "what is / how does / explain", provide a clear explanation first
+      - If the query is technical, prioritize accuracy, definitions, and examples
+      - If the query is about current events, summarize key points and viewpoints
+      - If multiple sources agree on facts, state them directly
+      - If sources disagree, note the disagreement
+      - Use only the information in the sources
+      - Do not add hyperlinks in the summary
+      - For any date-related calculations or age calculations, use today's date ${dateToday}
+
+      SOURCES:
+      ${resultsText}`,
+    },
+  ];
+}
+
+// Function to handle streaming response to the client
+async function handleStreamResponse(stream, res) {
+  console.log("✅ Stream started");
+  let chunkCount = 0;
+
+  for await (const chunk of stream) {
+    // Try different possible locations of content in the chunk
+    const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.text || chunk.content || "";
+
+    if (content) {
+      chunkCount++;
+      res.write(JSON.stringify({ content }) + "\n");
+    }
+  }
+
+  console.log(`✅ Stream completed (${chunkCount} chunks)`);
+  res.write(JSON.stringify({ done: true }) + "\n");
+  res.end();
+}
+
+// Function to handle errors in streaming responses
+function handleStreamError(res, error) {
+  console.error("Streaming error:", error.message);
+
+  if (!res.headersSent) {
+    res.status(500).json({ error: error.message || "Unknown error" });
+  } else {
+    res.write(JSON.stringify({ error: error.message || "Unknown error" }) + "\n");
+    res.end();
+  }
+}
+
 // Streaming endpoint for AI summaries (POST request to avoid URL length limits)
 app.post("/api/summary", async (req, res) => {
   if (!OPENROUTER_API_KEY || !SUMMARY_ENABLED) {
@@ -158,84 +234,32 @@ app.post("/api/summary", async (req, res) => {
     res.flushHeaders();
 
     try {
+      const prompt = createAIPrompt(query, resultsText, dateToday);
       const stream = await openrouter.chat.completions.create({
         model: OPENROUTER_MODEL,
-        messages: [
-          {
-            role: "system",
-            content: `You are a general-purpose search assistant.
-            Your goal is to help the user understand the topic they searched for.
-            Today's date is ${dateToday}. Use this information for any date or age calculations.
-
-            Prefer direct, useful answers.
-            Use the provided sources only.
-            Do not speculate or add outside knowledge.
-            When appropriate, explain concepts clearly rather than summarizing opinions.
-
-            IMPORTANT: Your response must not exceed ${MAX_TOKENS} tokens. Be concise and prioritize the most important information.`,
-          },
-          {
-            role: "user",
-            content: `QUERY:
-            ${query}
-
-            Below are search results relevant to the query.
-
-            TASK:
-            Produce a helpful search-style response similar to a modern search engine.
-
-            IMPORTANT: Limit your response to ${MAX_TOKENS} tokens maximum.
-
-            GUIDELINES:
-            - If the query asks "what is / how does / explain", provide a clear explanation first
-            - If the query is technical, prioritize accuracy, definitions, and examples
-            - If the query is about current events, summarize key points and viewpoints
-            - If multiple sources agree on facts, state them directly
-            - If sources disagree, note the disagreement
-            - Use only the information in the sources
-            - Do not add hyperlinks in the summary
-            - For any date-related calculations or age calculations, use today's date ${dateToday}
-
-            SOURCES:
-            ${resultsText}`,
-          },
-        ],
+        messages: prompt,
         max_tokens: MAX_TOKENS,
         stream: true,
       });
 
-      console.log("✅ Stream started");
-      let chunkCount = 0;
-
-      for await (const chunk of stream) {
-        // Try different possible locations of content in the chunk
-        const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.text || chunk.content || "";
-
-        if (content) {
-          chunkCount++;
-          res.write(JSON.stringify({ content }) + "\n");
-        }
-      }
-
-      console.log(`✅ Stream completed (${chunkCount} chunks)`);
-      res.write(JSON.stringify({ done: true }) + "\n");
-      res.end();
+      await handleStreamResponse(stream, res);
     } catch (streamError) {
       console.error("Stream error:", streamError.message);
       throw streamError;
     }
   } catch (error) {
-    console.error("Streaming error:", error.message);
-
-    if (!res.headersSent) {
-      res.status(500).json({ error: error.message || "Unknown error" });
-    } else {
-      res.write(JSON.stringify({ error: error.message || "Unknown error" }) + "\n");
-      res.end();
-    }
+    handleStreamError(res, error);
   }
 });
 
+// Function to rewrite URLs in HTML to use the proxy
+function rewriteUrls(html) {
+  html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
+  html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
+  return html;
+}
+
+// Function to inject the summary template into HTML
 function injectStreamingSummary(html, query, results) {
   if (!SUMMARY_ENABLED || !results || results.length === 0) {
     return html;
@@ -248,8 +272,7 @@ function injectStreamingSummary(html, query, results) {
     .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results));
 
   // Rewrite URLs to use proxy
-  html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
-  html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
+  html = rewriteUrls(html);
 
   const resultsMarker = /<div[^>]*id=["']results["'][^>]*>/i;
   if (resultsMarker.test(html)) {
