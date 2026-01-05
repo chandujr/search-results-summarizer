@@ -4,7 +4,7 @@
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 12px;
     padding: 24px;
-    margin: 20px 0;
+    margin: 20px 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
     border: 1px solid #334155;
     border-bottom: 4px solid #497cff;
@@ -140,6 +140,13 @@
 
   #ai-summary-content p {
     margin: 10px 0;
+  }
+
+  /* Media query for tablet/laptop screens */
+  @media (min-width: 800px) and (max-width: 1280px) {
+    #ai-summary-container {
+      margin-left: 3.5rem !important;
+    }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
