@@ -273,6 +273,8 @@ app.post("/api/summary", async (req, res) => {
     res.flushHeaders();
 
     try {
+      log(`Summarizing from top ${topResults.length} results`);
+
       const prompt = createAIPrompt(query, resultsText, dateToday);
       const stream = await openrouter.chat.completions.create({
         model: OPENROUTER_MODEL,
