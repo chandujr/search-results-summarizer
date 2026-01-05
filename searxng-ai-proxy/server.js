@@ -34,7 +34,7 @@ try {
   summaryTemplate = "<div>Template loading error</div>";
 }
 
-const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8080";
+const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8888";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";

@@ -69,7 +69,7 @@ Edit `docker-compose.yml` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-|`SEARXNG_URL` | `http://localhost:8080` | Existing SearXNG URL |
+|`SEARXNG_URL` | `http://localhost:8888` | Existing SearXNG URL |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `5` | Number of results to summarize |
 
@@ -122,7 +122,7 @@ That's it! No global files, no system pollution.
 - Ensure `SUMMARY_ENABLED=true`
 
 **"Proxy Error" message?**
-- Check SearXNG is running: `curl http://localhost:8080`
+- Check SearXNG is running: `curl http://localhost:8888`
 - Verify network connectivity between containers
 
 **Slow summaries?**
