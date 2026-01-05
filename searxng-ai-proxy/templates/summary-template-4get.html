@@ -158,6 +158,21 @@
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
     let summaryText = '';
 
+    // Request deduplication - prevent multiple simultaneous requests for same query
+    const requestKey = `${query}_${results.length}`; // Create unique key based on query and result count
+    if (window.summaryRequestCache && window.summaryRequestCache[requestKey]) {
+      console.log('[Search Results Summary] Request already in progress for this query');
+      return;
+    }
+
+    // Initialize request cache if it doesn't exist
+    if (!window.summaryRequestCache) {
+      window.summaryRequestCache = {};
+    }
+
+    // Mark this request as in progress
+    window.summaryRequestCache[requestKey] = true;
+
     const converter = new showdown.Converter({
       parseImgDimensions: true,
       simplifiedAutoLink: true,
@@ -318,6 +333,11 @@
     }
 
     // Start the process
-    fetchSummary();
+    fetchSummary().finally(() => {
+      // Clear the request cache when done (whether success or error)
+      if (window.summaryRequestCache) {
+        delete window.summaryRequestCache[requestKey];
+      }
+    });
   })();
 </script>

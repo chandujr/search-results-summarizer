@@ -142,8 +142,13 @@ const globalLimiter = rateLimit({
   },
 });
 
-// Apply rate limiting to all API routes
-app.use("/api/", globalLimiter);
+// Apply rate limiting to API routes except suggestions
+app.use("/api/", (req, res, next) => {
+  if (req.path.includes("/ac") || req.path === "/autocompleter") {
+    return next();
+  }
+  return globalLimiter(req, res, next);
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -329,6 +334,36 @@ function injectStreamingSummary(html, query, results) {
   // Return the modified HTML
   return $.html();
 }
+
+// Handle 4get search suggestions endpoint
+app.get("/api/v1/ac", async (req, res) => {
+  try {
+    const query = req.query.s || "";
+    const targetUrl = `${SEARCH_URL}/api/v1/ac?s=${encodeURIComponent(query)}`;
+
+    // Forward the request to 4get
+    const response = await axios.get(targetUrl);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    log("Suggestions proxy error: " + error.message);
+    res.status(500).json([]);
+  }
+});
+
+// Handle SearXNG search suggestions endpoint
+app.get("/autocompleter", async (req, res) => {
+  try {
+    const query = req.query.q || "";
+    const targetUrl = `${SEARCH_URL}/autocompleter?q=${encodeURIComponent(query)}`;
+
+    // Forward the request to SearXNG
+    const response = await axios.get(targetUrl);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    log("Suggestions proxy error: " + error.message);
+    res.status(500).json([]);
+  }
+});
 
 app.all("*", async (req, res) => {
   try {
