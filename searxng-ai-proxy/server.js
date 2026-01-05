@@ -39,9 +39,9 @@ function loadTemplates() {
 
     activeTemplate = ENGINE_NAME === "4get" ? summaryTemplate4get : summaryTemplateSearxng;
 
-    log(`✅ Summary template loaded for ${ENGINE_NAME}`);
+    log(`Summary template loaded for ${ENGINE_NAME}`);
   } catch (error) {
-    console.error("❌ Error loading summary template:", error);
+    console.error("Error loading summary template:", error);
     activeTemplate = "<div>Template loading error</div>";
   }
 }
@@ -181,7 +181,7 @@ function createAIPrompt(query, resultsText, dateToday) {
 }
 
 async function handleStreamResponse(stream, res) {
-  log("✅ Stream started");
+  log("Stream started");
   let chunkCount = 0;
 
   for await (const chunk of stream) {
@@ -194,13 +194,13 @@ async function handleStreamResponse(stream, res) {
     }
   }
 
-  log(`✅ Stream completed (${chunkCount} chunks)`);
+  log(`Stream completed (${chunkCount} chunks)`);
   res.write(JSON.stringify({ done: true }) + "\n");
   res.end();
 }
 
 function handleStreamError(res, error) {
-  log("❌ Streaming error: " + error.message);
+  log("Streaming error: " + error.message);
 
   if (!res.headersSent) {
     res.status(500).json({ error: error.message || "Unknown error" });
@@ -213,7 +213,7 @@ function handleStreamError(res, error) {
 // Streaming endpoint for AI summaries (POST request to avoid URL length limits)
 app.post("/api/summary", async (req, res) => {
   if (!OPENROUTER_API_KEY || !SUMMARY_ENABLED) {
-    log("❌ Summary not enabled or API key missing");
+    log("Summary not enabled or API key missing");
     return res.status(400).json({ error: "Summary not enabled or API key missing" });
   }
 
@@ -249,7 +249,7 @@ app.post("/api/summary", async (req, res) => {
 
       await handleStreamResponse(stream, res);
     } catch (streamError) {
-      log("❌ Stream error: " + streamError.message);
+      log("Stream error: " + streamError.message);
       throw streamError;
     }
   } catch (error) {
@@ -351,7 +351,7 @@ app.all("*", async (req, res) => {
     });
 
     if (isSearchRequest && SUMMARY_ENABLED && response.headers["content-type"]?.includes("text/html")) {
-      log(`🔍 Processing HTML response for summary injection`);
+      log(`Processing HTML response for summary injection`);
       const html = response.data.toString();
       const $ = cheerio.load(html);
 
@@ -383,7 +383,7 @@ app.all("*", async (req, res) => {
         });
       }
 
-      log(`🔍 Extracted ${results.length} results from HTML for ${ENGINE_NAME}`);
+      log(`Extracted ${results.length} results from HTML for ${ENGINE_NAME}`);
       // Check if we should summarize
       const summarizeResult = shouldSummarize(query, results);
       if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
@@ -395,16 +395,16 @@ app.all("*", async (req, res) => {
 
     res.status(response.status).send(response.data);
   } catch (error) {
-    log("❌ Proxy error: " + error.message);
+    log("Proxy error: " + error.message);
     res.status(500).send("Proxy Error: " + error.message);
   }
 });
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  log(`✅ Search Engine AI Proxy running on port ${PORT}`);
-  log(`📍 Proxying to: ${SEARCH_URL}`);
-  log(`🔍 Search Engine: ${ENGINE_NAME}`);
-  log(`🤖 AI Model: ${OPENROUTER_MODEL}`);
-  log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
+  log(`Search Engine AI Proxy running on port ${PORT}`);
+  log(`Proxying to: ${SEARCH_URL}`);
+  log(`Search Engine: ${ENGINE_NAME}`);
+  log(`AI Model: ${OPENROUTER_MODEL}`);
+  log(`Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
 });
