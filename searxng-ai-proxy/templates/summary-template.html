@@ -54,23 +54,18 @@
         left: 0;
         right: 0;
         height: 40px;
-        background: linear-gradient(to bottom, transparent, #1e293b);
+        background: linear-gradient(to bottom, transparent, #1e293ba8, #1e293b);
         pointer-events: none;
         display: none;
         z-index: 1;
       "
     ></div>
   </div>
-  <div style="padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #64748b">
-    Powered by {{MODEL_NAME}}
-  </div>
-  <div style="margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.4">
-    Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
-  </div>
-  <div id="summary-expand-btn" style="display: none; margin-top: 10px; text-align: center">
+  <div id="summary-expand-btn" style="display: none; text-align: center">
     <button
       id="toggle-summary"
       style="
+        width: 100%;
         background: none;
         border: 1px solid #497cff;
         color: #497cff;
@@ -83,6 +78,12 @@
     >
       Show more
     </button>
+  </div>
+  <div style="padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #64748b">
+    Powered by {{MODEL_NAME}}
+  </div>
+  <div style="margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.4">
+    Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
   </div>
 </div>
 <style>
