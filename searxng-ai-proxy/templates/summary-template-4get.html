@@ -1,0 +1,323 @@
+<div
+  id="ai-summary-container"
+  style="
+    background: var(--282828); /* these are 4get variables */
+    border: 1px solid var(--504945);
+    border-bottom: 2px solid var(--8ec07c);
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 5px;
+  "
+>
+  <div style="display: flex; align-items: center; margin-bottom: 12px">
+    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+    </svg>
+    <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: 22px">
+      Search Results Summary
+    </h3>
+  </div>
+  <div id="ai-summary-content-wrapper" style="position: relative">
+    <div
+      id="ai-summary-content"
+      style="
+        color: var(--a89984);
+        line-height: 22px;
+        font-size: 16px;
+        min-height: 60px;
+        max-height: 200px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      "
+    >
+      <div style="display: flex; align-items: center; gap: 8px; color: var(--928374)">
+        <div
+          class="spinner"
+          style="
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--504945);
+            border-top-color: var(--8ec07c);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          "
+        ></div>
+        <span></span>Generating summary...</span>
+      </div>
+    </div>
+    <div
+      id="summary-fade-overlay"
+      style="
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(to bottom, transparent, var(--282828));
+        pointer-events: none;
+        display: none;
+        z-index: 1;
+      "
+    ></div>
+  </div>
+  <div id="summary-expand-btn" style="display: none; text-align: center">
+    <button
+      id="toggle-summary"
+      style="
+        width: 100%;
+        background: none;
+        border: 1px solid var(--8ec07c);
+        color: var(--8ec07c);
+        padding: 6px 12px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: normal;
+      "
+    >
+      Show more
+    </button>
+  </div>
+  <div style="padding-top: 12px; border-top: 1px solid var(--504945); font-size: 12px; color: var(--928374)">
+    Powered by {{MODEL_NAME}}
+  </div>
+  <div style="margin-top: 8px; font-size: 11px; color: var(--928374); line-height: 1.4">
+    Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+  </div>
+</div>
+<style>
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Code block styling */
+  #ai-summary-content pre {
+    background-color: var(--1d2021);
+    border: 1px solid var(--504945);
+    border-radius: 3px;
+    padding: 12px;
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  #ai-summary-content code {
+    background-color: var(--3c3836);
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: var(--ebdbb2);
+  }
+
+  #ai-summary-content pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.9em;
+  }
+
+  /* Other markdown elements */
+  #ai-summary-content blockquote {
+    border-left: 3px solid var(--8ec07c);
+    margin: 10px 0;
+    padding-left: 15px;
+    color: var(--928374);
+    font-style: italic;
+  }
+
+  #ai-summary-content ul,
+  #ai-summary-content ol {
+    margin: 10px 0;
+    padding-left: 25px;
+  }
+
+  #ai-summary-content li {
+    margin: 5px 0;
+  }
+
+  #ai-summary-content p {
+    margin: 10px 0;
+  }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+<script>
+  (function() {
+    // DOM elements
+    const container = document.getElementById('ai-summary-content');
+    const expandBtnContainer = document.getElementById('summary-expand-btn');
+    const toggleBtn = document.getElementById('toggle-summary');
+    const query = {{QUERY_JSON}};
+    const results = {{RESULTS_JSON}};
+
+    // State
+    let isExpanded = false;
+    const maxHeight = 200; // Maximum height in pixels before showing "Show more"
+    let summaryText = '';
+
+    const converter = new showdown.Converter({
+      parseImgDimensions: true,
+      simplifiedAutoLink: true,
+      strikethrough: true,
+      tables: true,
+      tasklists: true,
+      ghCodeBlocks: true,
+      ghMentions: true,
+      ghMentionsLink: 'https://github.com/{u}',
+      smoothLivePreview: true,
+      smartIndentationFix: true,
+      emoji: true,
+      underline: true,
+      ellipsis: true,
+      completeHTMLDocument: false,
+      metadata: false,
+      splitAdjacentBlockquotes: false
+    });
+
+    function showError(message) {
+      container.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--red);">
+          <svg style="width: 16px; height: 16px; fill: var(--red);" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>${message}</span>
+        </div>
+      `;
+    }
+
+    // Function to handle expand/collapse
+    function toggleExpand() {
+      isExpanded = !isExpanded;
+      const fadeOverlay = document.getElementById('summary-fade-overlay');
+      const summaryContainer = document.getElementById('ai-summary-container');
+
+      if (isExpanded) {
+        container.style.maxHeight = 'none';
+        toggleBtn.textContent = 'Show less';
+        fadeOverlay.style.display = 'none';
+      } else {
+        container.style.maxHeight = maxHeight + 'px';
+        toggleBtn.textContent = 'Show more';
+        // Show the fade overlay when content is collapsed
+        if (container.scrollHeight > maxHeight) {
+          fadeOverlay.style.display = 'block';
+        }
+        // Scroll to the summary container to make sure it's visible
+        summaryContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Function to check and update expand button visibility
+    function checkExpandButton() {
+      if (!isExpanded && container.scrollHeight > maxHeight) {
+        expandBtnContainer.style.display = 'block';
+        document.getElementById('summary-fade-overlay').style.display = 'block';
+      }
+    }
+
+    // Function to process a chunk of streaming data
+    function processChunk(data) {
+      if (data.error) {
+        console.error('[Search Results Summary] Error:', data.error);
+        showError(data.error);
+        return true; // Signal to stop processing
+      }
+
+      if (data.done) {
+        console.log('[Search Results Summary] Complete');
+        return true; // Signal to stop processing
+      }
+
+      if (data.content) {
+        summaryText += data.content;
+        container.innerHTML = converter.makeHtml(summaryText);
+        checkExpandButton();
+      }
+      return false; // Continue processing
+    }
+
+    toggleBtn.addEventListener('click', toggleExpand);
+
+    console.log('[Search Results Summary] Starting fetch stream');
+
+    // Function to handle streaming response
+    async function processStream(response) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      function readStream() {
+        return reader.read().then(({ done, value }) => {
+          if (done) {
+            console.log('[Search Results Summary] Stream completed');
+            return;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process all complete JSON objects in the buffer
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.substring(0, newlineIndex);
+            buffer = buffer.substring(newlineIndex + 1);
+
+            if (line.trim() === '') continue;
+
+            try {
+              const data = JSON.parse(line);
+
+              // Process the chunk and stop if it returns true
+              if (processChunk(data)) {
+                return;
+              }
+            } catch (e) {
+              console.error('[Search Results Summary] Parse error:', e, 'Line:', line);
+            }
+          }
+
+          return readStream();
+        });
+      }
+
+      return readStream().catch(error => {
+        console.error('[Search Results Summary] Stream reading error:', error);
+        showError('Connection error: ' + error.message);
+      });
+    }
+
+    // Main function to fetch and process the summary
+    async function fetchSummary() {
+      try {
+        const response = await fetch(window.location.origin + '/api/summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query, results })
+        });
+
+        // Handle rate limit errors specifically
+        if (response.status === 429) {
+          const data = await response.json();
+          showError(data.error || 'Rate limit exceeded. Please try again later.');
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        return processStream(response);
+      } catch (error) {
+        console.error('[Search Results Summary] Fetch error:', error);
+        showError('Connection error: ' + error.message);
+      }
+    }
+
+    // Start the process
+    fetchSummary();
+  })();
+</script>

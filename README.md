@@ -1,6 +1,6 @@
 # SearXNG AI Proxy
 
-AI-powered search summaries for SearXNG using OpenRouter. Works transparently with your existing SearXNG installation.
+AI-powered search summaries for SearXNG and 4get using OpenRouter. Works transparently with your existing search engine installation.
 
 ## 📁 Project Structure
 
@@ -12,7 +12,10 @@ searxng-ai-proxy-project/
 └── searxng-ai-proxy/
     ├── Dockerfile
     ├── package.json
-    └── server.js
+    ├── server.js
+    └── templates/
+        ├── summary-template-searxng.html
+        └── summary-template-4get.html
 ```
 
 ## 🚀 Quick Start
@@ -69,9 +72,25 @@ Edit `docker-compose.yml` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-|`SEARXNG_URL` | `http://localhost:8888` | Existing SearXNG URL |
+|`SEARCH_URL` | `http://localhost:8888` | URL of the search engine (SearXNG: 8888, 4get: 8081) |
+| `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `5` | Number of results to summarize |
+
+### Switching Between Search Engines
+
+To use 4get instead of SearXNG, update your `docker-compose.yml`:
+
+```yaml
+environment:
+  - SEARCH_URL=http://localhost:8081  # 4get URL
+  - ENGINE_NAME=4get                   # Set engine type
+```
+
+Then restart:
+```bash
+docker-compose up -d --build
+```
 
 ## 🛠️ Useful Commands
 
@@ -122,8 +141,11 @@ That's it! No global files, no system pollution.
 - Ensure `SUMMARY_ENABLED=true`
 
 **"Proxy Error" message?**
-- Check SearXNG is running: `curl http://localhost:8888`
+- Check your search engine is running: 
+  - SearXNG: `curl http://localhost:8888`
+  - 4get: `curl http://localhost:8081`
 - Verify network connectivity between containers
+- Ensure SEARCH_URL and ENGINE_NAME are correctly set
 
 **Slow summaries?**
 - Switch to faster model
@@ -135,6 +157,17 @@ That's it! No global files, no system pollution.
 - Your search queries and top results are sent to the AI provider
 - No data is stored by this proxy (stateless)
 - Consider privacy implications before use
+
+## 🔧 Adding Support for New Search Engines
+
+To add support for a new search engine:
+
+1. Create a new template file: `templates/summary-template-{engine}.html`
+2. Update `server.js` to add:
+   - Result extraction logic for the engine's HTML structure
+   - Injection logic for the correct container element
+   - URL parameter handling if different
+3. Set ENGINE_NAME to the new engine name in docker-compose.yml
 
 ## 📝 License
 

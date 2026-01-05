@@ -2,7 +2,6 @@ const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const OpenAI = require("openai");
-const showdown = require("showdown");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -11,7 +10,7 @@ const app = express();
 
 function log(message) {
   const now = new Date();
-  const time = now.toTimeString().split(" ")[0]; // Get HH:MM:SS part
+  const time = now.toTimeString().split(" ")[0];
   console.log(`[${time}] ${message}`);
 }
 
@@ -23,18 +22,36 @@ const MAX_TOKENS = 750;
 // Clear the request cache at startup
 requestCache.clear();
 
-// Load and cache the HTML template
-let summaryTemplate;
-try {
-  const templatePath = path.join(__dirname, "templates", "summary-template.html");
-  summaryTemplate = fs.readFileSync(templatePath, "utf8");
-  log("✅ Summary template loaded successfully");
-} catch (error) {
-  console.error("❌ Error loading summary template:", error);
-  summaryTemplate = "<div>Template loading error</div>";
+// Load and cache the HTML templates based on search engine type
+let activeTemplate;
+let summaryTemplateSearxng;
+let summaryTemplate4get;
+
+// Load appropriate templates based on search engine
+function loadTemplates() {
+  try {
+    // Always load both templates for flexibility
+    const searxngPath = path.join(__dirname, "templates", "summary-template-searxng.html");
+    const fourgetPath = path.join(__dirname, "templates", "summary-template-4get.html");
+
+    summaryTemplateSearxng = fs.readFileSync(searxngPath, "utf8");
+    summaryTemplate4get = fs.readFileSync(fourgetPath, "utf8");
+
+    activeTemplate = ENGINE_NAME === "4get" ? summaryTemplate4get : summaryTemplateSearxng;
+
+    log(`✅ Summary template loaded for ${ENGINE_NAME}`);
+  } catch (error) {
+    console.error("❌ Error loading summary template:", error);
+    activeTemplate = "<div>Template loading error</div>";
+  }
 }
 
-const SEARXNG_URL = process.env.SEARXNG_URL || "http://localhost:8888";
+const SEARCH_URL = process.env.SEARCH_URL || "http://localhost:8888";
+const ENGINE_NAME = process.env.ENGINE_NAME || "searxng";
+
+// Initial template loading
+loadTemplates();
+
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";
@@ -57,7 +74,6 @@ const RESOURCE_TRIGGERS = [
 
 // Function to determine if a query should be summarized
 function shouldSummarize(query, results) {
-  // Count keywords in the query
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;
   const resultCount = results.length;
@@ -243,8 +259,13 @@ app.post("/api/summary", async (req, res) => {
 
 // Function to rewrite URLs in HTML to use the proxy
 function rewriteUrls(html) {
-  html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
-  html = html.replace(/href=["']\/web\?s=/gi, 'href="/web?s=');
+  if (ENGINE_NAME === "4get") {
+    html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
+    html = html.replace(/href=["']\/web\?s=/gi, 'href="/web?s=');
+  } else if (ENGINE_NAME === "searxng") {
+    html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
+    html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
+  }
   return html;
 }
 
@@ -254,20 +275,26 @@ function injectStreamingSummary(html, query, results) {
   }
 
   // Replace placeholders in the template with actual values
-  let summaryHTML = summaryTemplate
+  let summaryHTML = activeTemplate
     .replace(/{{MODEL_NAME}}/g, OPENROUTER_MODEL.split("/")[1] || "AI")
     .replace(/{{QUERY_JSON}}/g, JSON.stringify(query))
     .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results));
 
   html = rewriteUrls(html);
 
-  // Use cheerio to find and inject summary properly
+  // Use cheerio to find and inject summary properly based on the search engine
   const $ = cheerio.load(html);
-  const leftDiv = $(".left").first();
 
-  if (leftDiv.length) {
-    // Insert summary at the beginning of the left div
-    leftDiv.prepend(summaryHTML);
+  if (ENGINE_NAME === "4get") {
+    const leftDiv = $(".left").first();
+    if (leftDiv.length) {
+      leftDiv.prepend(summaryHTML);
+    }
+  } else if (ENGINE_NAME === "searxng") {
+    const urlsDiv = $("#urls").first();
+    if (urlsDiv.length) {
+      urlsDiv.prepend(summaryHTML);
+    }
   }
 
   // Return the modified HTML
@@ -276,8 +303,9 @@ function injectStreamingSummary(html, query, results) {
 
 app.all("*", async (req, res) => {
   try {
-    const targetUrl = `${SEARXNG_URL}${req.url}`;
-    const query = req.query.s || req.body.s;
+    const targetUrl = `${SEARCH_URL}${req.url}`;
+    // Use different parameter names based on the search engine
+    const query = ENGINE_NAME === "4get" ? req.query.s || req.body.s : req.query.q || req.body.q;
     const isSearchRequest = query && query.trim().length > 0;
 
     const response = await axios({
@@ -287,7 +315,7 @@ app.all("*", async (req, res) => {
       data: req.body,
       headers: {
         ...req.headers,
-        host: new URL(SEARXNG_URL).host,
+        host: new URL(SEARCH_URL).host,
       },
       responseType: isSearchRequest ? "text" : "arraybuffer",
       validateStatus: () => true,
@@ -327,20 +355,35 @@ app.all("*", async (req, res) => {
       const html = response.data.toString();
       const $ = cheerio.load(html);
 
-      // Extract search results from 4get HTML structure
       const results = [];
-      $(".text-result").each((i, elem) => {
-        const $elem = $(elem);
-        const title = $elem.find(".title").first().text().trim();
-        const url = $elem.find("a.hover").first().attr("href");
-        const content = $elem.find(".description").first().text().trim();
 
-        if (title && url) {
-          results.push({ title, url, content });
-        }
-      });
+      if (ENGINE_NAME === "4get") {
+        // Extract search results from 4get HTML structure
+        $(".text-result").each((i, elem) => {
+          const $elem = $(elem);
+          const title = $elem.find(".title").first().text().trim();
+          const url = $elem.find("a.hover").first().attr("href");
+          const content = $elem.find(".description").first().text().trim();
 
-      log(`🔍 Extracted ${results.length} results from HTML`);
+          if (title && url) {
+            results.push({ title, url, content });
+          }
+        });
+      } else {
+        // Extract search results from SearXNG HTML structure
+        $(".result").each((i, elem) => {
+          const $elem = $(elem);
+          const title = $elem.find("h3 a").first().text().trim();
+          const url = $elem.find("h3 a").first().attr("href");
+          const content = $elem.find(".content").first().text().trim();
+
+          if (title && url) {
+            results.push({ title, url, content });
+          }
+        });
+      }
+
+      log(`🔍 Extracted ${results.length} results from HTML for ${ENGINE_NAME}`);
       // Check if we should summarize
       const summarizeResult = shouldSummarize(query, results);
       if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
@@ -359,8 +402,9 @@ app.all("*", async (req, res) => {
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
-  log(`✅ SearXNG AI Proxy running on port ${PORT}`);
-  log(`📍 Proxying to: ${SEARXNG_URL}`);
+  log(`✅ Search Engine AI Proxy running on port ${PORT}`);
+  log(`📍 Proxying to: ${SEARCH_URL}`);
+  log(`🔍 Search Engine: ${ENGINE_NAME}`);
   log(`🤖 AI Model: ${OPENROUTER_MODEL}`);
   log(`🔍 Summary: ${SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
 });
