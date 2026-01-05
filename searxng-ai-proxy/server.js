@@ -57,23 +57,47 @@ const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 const SUMMARY_ENABLED = process.env.SUMMARY_ENABLED !== "false";
 const MAX_RESULTS = parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5;
 
-// Keywords that indicate a resource-finding query (less likely to need summary)
-const RESOURCE_TRIGGERS = [
-  "github",
-  "download",
-  "repository",
-  "link",
-  "url",
-  "tool",
-  "software",
-  "program",
-  "app",
-  "library",
-  "framework",
-];
-
 // Function to determine if a query should be summarized
 function shouldSummarize(query, results) {
+  // summary will not be generated if query contains these words...
+  const excludeWords = [
+    "github",
+    "download",
+    "repository",
+    "link",
+    "url",
+    "tool",
+    "software",
+    "program",
+    "app",
+    "library",
+    "framework",
+  ];
+
+  // ...but summary will be generated if it also contains these words
+  const excludeOverrides = [
+    "what",
+    "why",
+    "how",
+    "when",
+    "where",
+    "who",
+    "which",
+    "can",
+    "will",
+    "would",
+    "could",
+    "should",
+    "is",
+    "are",
+    "was",
+    "were",
+    "do",
+    "does",
+    "did",
+    "example",
+  ];
+
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;
   const resultCount = results.length;
@@ -88,12 +112,17 @@ function shouldSummarize(query, results) {
 
   // Analyze query intent to determine if summary would be valuable
   const queryLower = query.toLowerCase();
+  const hasExcludeOverrides = excludeOverrides.some((word) => queryLower.includes(word));
 
-  for (const word of RESOURCE_TRIGGERS) {
+  if (hasExcludeOverrides) {
+    return { shouldSummarize: true };
+  }
+
+  for (const word of excludeWords) {
     if (queryLower.includes(word)) {
       return {
         shouldSummarize: false,
-        reason: `Query appears to be resource-finding: "${word}"`,
+        reason: `Query contains word in the exclude list: "${word}"`,
       };
     }
   }
