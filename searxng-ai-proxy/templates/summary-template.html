@@ -1,20 +1,19 @@
 <div
   id="ai-summary-container"
   style="
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 12px;
-    padding: 24px;
-    margin: 20px 0.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-    border: 1px solid #334155;
-    border-bottom: 4px solid #497cff;
+    background: var(--282828);
+    border: 1px solid var(--504945);
+    border-bottom: 2px solid var(--8ec07c);
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 5px;
   "
 >
   <div style="display: flex; align-items: center; margin-bottom: 12px">
-    <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #497cff" viewBox="0 0 24 24">
+    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
     </svg>
-    <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600; line-height: normal">
+    <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: 22px">
       Search Results Summary
     </h3>
   </div>
@@ -22,28 +21,28 @@
     <div
       id="ai-summary-content"
       style="
-        color: #cbd5e1;
-        line-height: 1.6;
-        font-size: 15px;
+        color: var(--a89984);
+        line-height: 22px;
+        font-size: 16px;
         min-height: 60px;
         max-height: 200px;
         overflow: hidden;
         transition: max-height 0.3s ease;
       "
     >
-      <div style="display: flex; align-items: center; gap: 8px; color: #64748b">
+      <div style="display: flex; align-items: center; gap: 8px; color: var(--928374)">
         <div
           class="spinner"
           style="
             width: 16px;
             height: 16px;
-            border: 2px solid #334155;
-            border-top-color: #497cff;
+            border: 2px solid var(--504945);
+            border-top-color: var(--8ec07c);
             border-radius: 50%;
             animation: spin 1s linear infinite;
           "
         ></div>
-        <span>Generating summary...</span>
+        <span></span>Generating summary...</span>
       </div>
     </div>
     <div
@@ -54,7 +53,7 @@
         left: 0;
         right: 0;
         height: 40px;
-        background: linear-gradient(to bottom, transparent, #1e293ba8, #1e293b);
+        background: linear-gradient(to bottom, transparent, var(--282828));
         pointer-events: none;
         display: none;
         z-index: 1;
@@ -67,10 +66,10 @@
       style="
         width: 100%;
         background: none;
-        border: 1px solid #497cff;
-        color: #497cff;
+        border: 1px solid var(--8ec07c);
+        color: var(--8ec07c);
         padding: 6px 12px;
-        border-radius: 4px;
+        border-radius: 3px;
         cursor: pointer;
         font-size: 14px;
         line-height: normal;
@@ -79,10 +78,10 @@
       Show more
     </button>
   </div>
-  <div style="padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #64748b">
+  <div style="padding-top: 12px; border-top: 1px solid var(--504945); font-size: 12px; color: var(--928374)">
     Powered by {{MODEL_NAME}}
   </div>
-  <div style="margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.4">
+  <div style="margin-top: 8px; font-size: 11px; color: var(--928374); line-height: 1.4">
     Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
   </div>
 </div>
@@ -95,9 +94,9 @@
 
   /* Code block styling */
   #ai-summary-content pre {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 6px;
+    background-color: var(--1d2021);
+    border: 1px solid var(--504945);
+    border-radius: 3px;
     padding: 12px;
     margin: 10px 0;
     overflow-x: auto;
@@ -106,11 +105,12 @@
   }
 
   #ai-summary-content code {
-    background-color: rgba(139, 92, 246, 0.1);
+    background-color: var(--3c3836);
     border-radius: 3px;
     padding: 2px 4px;
-    font-family: "Consolas", "Monaco", "Courier New", monospace;
+    font-family: monospace;
     font-size: 0.9em;
+    color: var(--ebdbb2);
   }
 
   #ai-summary-content pre code {
@@ -121,10 +121,10 @@
 
   /* Other markdown elements */
   #ai-summary-content blockquote {
-    border-left: 4px solid #497cff;
+    border-left: 3px solid var(--8ec07c);
     margin: 10px 0;
     padding-left: 15px;
-    color: #94a3b8;
+    color: var(--928374);
     font-style: italic;
   }
 
@@ -142,12 +142,6 @@
     margin: 10px 0;
   }
 
-  /* Media query for tablet/laptop screens */
-  @media (min-width: 800px) and (max-width: 1280px) {
-    #ai-summary-container {
-      margin-left: 3.5rem !important;
-    }
-  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
@@ -185,8 +179,8 @@
 
     function showError(message) {
       container.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
-          <svg style="width: 16px; height: 16px; fill: #ef4444;" viewBox="0 0 24 24">
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--red);">
+          <svg style="width: 16px; height: 16px; fill: var(--red);" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>${message}</span>
@@ -198,6 +192,7 @@
     function toggleExpand() {
       isExpanded = !isExpanded;
       const fadeOverlay = document.getElementById('summary-fade-overlay');
+      const summaryContainer = document.getElementById('ai-summary-container');
 
       if (isExpanded) {
         container.style.maxHeight = 'none';
@@ -211,7 +206,7 @@
           fadeOverlay.style.display = 'block';
         }
         // Scroll to the summary container to make sure it's visible
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        summaryContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 

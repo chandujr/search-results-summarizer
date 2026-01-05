@@ -243,8 +243,8 @@ app.post("/api/summary", async (req, res) => {
 
 // Function to rewrite URLs in HTML to use the proxy
 function rewriteUrls(html) {
-  html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
-  html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
+  html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
+  html = html.replace(/href=["']\/web\?s=/gi, 'href="/web?s=');
   return html;
 }
 
@@ -261,22 +261,23 @@ function injectStreamingSummary(html, query, results) {
 
   html = rewriteUrls(html);
 
-  const resultsMarker = /<div[^>]*id=["']results["'][^>]*>/i;
-  if (resultsMarker.test(html)) {
-    return html.replace(resultsMarker, (match) => match + summaryHTML);
+  // Use cheerio to find and inject summary properly
+  const $ = cheerio.load(html);
+  const leftDiv = $(".left").first();
+
+  if (leftDiv.length) {
+    // Insert summary at the beginning of the left div
+    leftDiv.prepend(summaryHTML);
   }
 
-  const mainMarker = /<main[^>]*>/i;
-  if (mainMarker.test(html)) {
-    return html.replace(mainMarker, (match) => match + summaryHTML);
-  }
-  return summaryHTML + html;
+  // Return the modified HTML
+  return $.html();
 }
 
 app.all("*", async (req, res) => {
   try {
     const targetUrl = `${SEARXNG_URL}${req.url}`;
-    const query = req.query.q || req.body.q;
+    const query = req.query.s || req.body.s;
     const isSearchRequest = query && query.trim().length > 0;
 
     const response = await axios({
@@ -326,13 +327,13 @@ app.all("*", async (req, res) => {
       const html = response.data.toString();
       const $ = cheerio.load(html);
 
-      // Extract search results from SearXNG HTML structure
+      // Extract search results from 4get HTML structure
       const results = [];
-      $("article.result").each((i, elem) => {
+      $(".text-result").each((i, elem) => {
         const $elem = $(elem);
-        const title = $elem.find("h3 a").first().text().trim();
-        const url = $elem.find("h3 a").first().attr("href");
-        const content = $elem.find("p.content").first().text().trim();
+        const title = $elem.find(".title").first().text().trim();
+        const url = $elem.find("a.hover").first().attr("href");
+        const content = $elem.find(".description").first().text().trim();
 
         if (title && url) {
           results.push({ title, url, content });

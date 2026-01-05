@@ -6,7 +6,7 @@ services:
     container_name: searxng-ai-proxy
     network_mode: host
     environment:
-      - SEARXNG_URL=http://localhost:8888
+      - SEARXNG_URL=http://localhost:8081
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL}
       - SUMMARY_ENABLED=true
