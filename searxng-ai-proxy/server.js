@@ -298,6 +298,7 @@ function rewriteUrls(html) {
   if (ENGINE_NAME === "4get") {
     html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
     html = html.replace(/href=["']\/web\?s=/gi, 'href="/web?s=');
+    html = html.replace(/src=["']\/proxy\?i=/gi, 'src="/proxy?i=');
   } else if (ENGINE_NAME === "searxng") {
     html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
     html = html.replace(/href=["']\/search\?q=/gi, 'href="/search?q=');
@@ -367,6 +368,90 @@ app.get("/autocompleter", async (req, res) => {
   }
 });
 
+// Handle proxy requests for images and other content (only needed for 4get)
+app.get("/proxy", async (req, res) => {
+  // Skip this handler for SearXNG as it has its own image proxy
+  if (ENGINE_NAME === "searxng") {
+    return res.status(404).send("Not found");
+  }
+  try {
+    const imageUrl = req.query.i;
+    if (!imageUrl) {
+      return res.status(400).send("Missing image URL parameter");
+    }
+
+    const response = await axios({
+      method: "GET",
+      url: imageUrl,
+      responseType: "arraybuffer",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        Accept: req.headers["accept"] || "image/*",
+      },
+      validateStatus: () => true,
+      maxRedirects: 5,
+      timeout: 10000,
+    });
+
+    // Forward the image content type if available
+    const contentType = response.headers["content-type"];
+    if (contentType) {
+      res.setHeader("Content-Type", contentType);
+    }
+
+    // Set cache control headers for images
+    res.setHeader("Cache-Control", "public, max-age=3600"); // Cache for 1 hour
+
+    return res.status(response.status).send(response.data);
+  } catch (error) {
+    log("Image proxy error: " + error.message);
+    return res.status(500).send("Error proxying image");
+  }
+});
+
+// Handle favicon proxy requests (only needed for 4get)
+app.get("/favicon", async (req, res) => {
+  // Skip this handler for SearXNG as it has its own favicon handling
+  if (ENGINE_NAME === "searxng") {
+    return res.status(404).send("Not found");
+  }
+  try {
+    const faviconUrl = req.query.s;
+    if (!faviconUrl) {
+      return res.status(400).send("Missing favicon URL parameter");
+    }
+
+    const response = await axios({
+      method: "GET",
+      url: `${SEARCH_URL}/favicon?s=${encodeURIComponent(faviconUrl)}`,
+      responseType: "arraybuffer",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        Accept: req.headers["accept"] || "image/*",
+      },
+      validateStatus: () => true,
+      maxRedirects: 5,
+      timeout: 5000,
+    });
+
+    // Forward the favicon content type if available
+    const contentType = response.headers["content-type"];
+    if (contentType) {
+      res.setHeader("Content-Type", contentType);
+    }
+
+    // Set cache control headers for favicons
+    res.setHeader("Cache-Control", "public, max-age=86400"); // Cache for 1 day
+
+    return res.status(response.status).send(response.data);
+  } catch (error) {
+    log("Favicon proxy error: " + error.message);
+    return res.status(500).send("Error proxying favicon");
+  }
+});
+
 app.all("*", async (req, res) => {
   try {
     const targetUrl = `${SEARCH_URL}${req.url}`;
@@ -382,6 +467,8 @@ app.all("*", async (req, res) => {
       headers: {
         ...req.headers,
         host: new URL(SEARCH_URL).host,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       },
       responseType: isSearchRequest ? "text" : "arraybuffer",
       validateStatus: () => true,
