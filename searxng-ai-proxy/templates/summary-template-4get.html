@@ -1,16 +1,16 @@
 <div
   id="ai-summary-container"
   style="
-    background: var(--282828); /* these are 4get variables */
+    background: #232525;
     border: 1px solid var(--504945);
-    border-bottom: 2px solid var(--8ec07c);
+    border-bottom: 2px solid #fc92a5;
     padding: 15px;
     margin: 15px 0;
-    border-radius: 5px;
+    border-radius: 2px;
   "
 >
   <div style="display: flex; align-items: center; margin-bottom: 12px">
-    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
+    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: #fc92a5" viewBox="0 0 24 24">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
     </svg>
     <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: 22px">
@@ -37,12 +37,12 @@
             width: 16px;
             height: 16px;
             border: 2px solid var(--504945);
-            border-top-color: var(--8ec07c);
+            border-top-color: #fc92a5;
             border-radius: 50%;
             animation: spin 1s linear infinite;
           "
         ></div>
-        <span></span>Generating summary...</span>
+        <span>Generating summary...</span>
       </div>
     </div>
     <div
@@ -53,7 +53,7 @@
         left: 0;
         right: 0;
         height: 40px;
-        background: linear-gradient(to bottom, transparent, var(--282828));
+        background: linear-gradient(to bottom, transparent, #232525);
         pointer-events: none;
         display: none;
         z-index: 1;
@@ -66,10 +66,10 @@
       style="
         width: 100%;
         background: none;
-        border: 1px solid var(--8ec07c);
-        color: var(--8ec07c);
+        border: 1px solid #fc92a5;
+        color: #fc92a5;
         padding: 6px 12px;
-        border-radius: 3px;
+        border-radius: 2px;
         cursor: pointer;
         font-size: 14px;
         line-height: normal;
@@ -121,7 +121,7 @@
 
   /* Other markdown elements */
   #ai-summary-content blockquote {
-    border-left: 3px solid var(--8ec07c);
+    border-left: 3px solid #fc92a5;
     margin: 10px 0;
     padding-left: 15px;
     color: var(--928374);
@@ -141,7 +141,6 @@
   #ai-summary-content p {
     margin: 10px 0;
   }
-
 </style>
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
@@ -194,8 +193,8 @@
 
     function showError(message) {
       container.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: var(--red);">
-          <svg style="width: 16px; height: 16px; fill: var(--red);" viewBox="0 0 24 24">
+        <div style="display: flex; align-items: center; gap: 8px; color: #fc92a5;">
+          <svg style="width: 16px; height: 16px; fill: #fc92a5;" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>${message}</span>
