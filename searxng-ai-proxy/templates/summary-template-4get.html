@@ -141,6 +141,43 @@
   #ai-summary-content p {
     margin: 10px 0;
   }
+
+  /* Table styling to fix 4get layout issues */
+  #ai-summary-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 14px;
+    table-layout: auto;
+  }
+
+  #ai-summary-content th,
+  #ai-summary-content td {
+    border: 1px solid var(--504945);
+    padding: 8px 12px !important;
+    text-align: left;
+    color: var(--a89984);
+    width: auto !important;
+    vertical-align: top !important;
+    white-space: nowrap !important;
+    min-width: 60px !important;
+  }
+
+  #ai-summary-content th:first-child,
+  #ai-summary-content td:first-child {
+    min-width: 80px !important;
+    width: 80px !important;
+  }
+
+  #ai-summary-content th {
+    background-color: var(--3c3836);
+    color: var(--bdae93);
+    font-weight: normal;
+  }
+
+  #ai-summary-content tr:nth-child(even) {
+    background-color: rgba(56, 52, 54, 0.3);
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
