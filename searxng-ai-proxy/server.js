@@ -457,6 +457,71 @@ app.get("/favicon", async (req, res) => {
   }
 });
 
+// Handle 4get settings endpoint to ensure cookies are properly set
+app.get("/settings", async (req, res) => {
+  if (ENGINE_NAME !== "4get") return res.status(404).send("Not found");
+
+  try {
+    const queryString = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
+    const targetUrl = `${SEARCH_URL}/settings${queryString}`;
+
+    const parsedUrl = new URL(targetUrl);
+    const httpModule = parsedUrl.protocol === "https:" ? https : require("http");
+
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === "https:" ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: "GET",
+      headers: {
+        "User-Agent": req.headers["user-agent"] || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Accept: req.headers["accept"] || "text/html,application/xhtml+xml",
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      const proxyReq = httpModule.request(options, (proxyRes) => {
+        // Copy headers, with special handling for Set-Cookie and Location
+        Object.entries(proxyRes.headers).forEach(([key, value]) => {
+          if (["transfer-encoding", "connection", "content-length"].includes(key.toLowerCase())) return;
+
+          if (key.toLowerCase() === "set-cookie") {
+            (Array.isArray(value) ? value : [value]).forEach((cookie) => cookie && res.append(key, cookie));
+          } else if (key.toLowerCase() === "location" && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
+            // Update redirect location to point to our proxy
+            const location = value.toString().startsWith("/")
+              ? `http://localhost:3000${value}`
+              : value.toString().replace("localhost:8081", "localhost:3000");
+            res.setHeader(key, location);
+          } else {
+            res.setHeader(key, value);
+          }
+        });
+
+        // For redirects, send empty response
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
+          return res.status(proxyRes.statusCode).end();
+        }
+
+        // Otherwise pipe the response
+        res.status(proxyRes.statusCode);
+        proxyRes.pipe(res).on("end", resolve);
+      });
+
+      proxyReq.on("error", (error) => {
+        log("Settings proxy error: " + error.message);
+        res.status(500).send("Error proxying settings page");
+        reject(error);
+      });
+
+      proxyReq.end();
+    });
+  } catch (error) {
+    log("Settings proxy error: " + error.message);
+    return res.status(500).send("Error proxying settings page");
+  }
+});
+
 app.all("*", async (req, res) => {
   try {
     const targetUrl = `${SEARCH_URL}${req.url}`;
