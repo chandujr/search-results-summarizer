@@ -464,6 +464,15 @@ app.all("*", async (req, res) => {
     const query = ENGINE_NAME === "4get" ? req.query.s || req.body.s : req.query.q || req.body.q;
     const isSearchRequest = query && query.trim().length > 0;
 
+    // Check if this is a general section search request and not news, videos or any others
+    let isGeneralSearch = false;
+    if (ENGINE_NAME === "4get") {
+      isGeneralSearch = req.path.startsWith("/web") || req.path === "/";
+    } else if (ENGINE_NAME === "searxng") {
+      const categories = req.query.categories;
+      isGeneralSearch = !categories || categories === "general";
+    }
+
     const response = await axios({
       method: req.method,
       url: targetUrl,
@@ -508,8 +517,13 @@ app.all("*", async (req, res) => {
       }
     });
 
-    if (isSearchRequest && SUMMARY_ENABLED && response.headers["content-type"]?.includes("text/html")) {
-      log(`Processing HTML response for summary injection`);
+    if (
+      isSearchRequest &&
+      SUMMARY_ENABLED &&
+      isGeneralSearch &&
+      response.headers["content-type"]?.includes("text/html")
+    ) {
+      log(`Processing HTML response for general search summary injection`);
       const html = response.data.toString();
       const $ = cheerio.load(html);
 
