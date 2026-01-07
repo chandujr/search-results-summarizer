@@ -1,90 +1,107 @@
 <div
   id="ai-summary-container"
+  class="result result-default"
   style="
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 12px;
-    padding: 24px;
-    padding-bottom: 12px;
+    background: var(--color-result-background);
+    border: 1px solid var(--color-result-border);
+    padding: 0;
     margin: 20px 0.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-    border: 1px solid #334155;
-    border-bottom: 4px solid #497cff;
+    border-radius: 8px;
   "
 >
-  <div style="display: flex; align-items: center; margin-bottom: 12px">
-    <svg style="width: 24px; height: 24px; margin-right: 10px; fill: #497cff" viewBox="0 0 24 24">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-    </svg>
-    <h3 style="margin: 0; color: #f1f5f9; font-size: 18px; font-weight: 600; line-height: normal">
-      Search Results Summary
-    </h3>
+  <div
+    class="url_header"
+    style="border-bottom: 1px solid var(--color-result-border); padding: 8px 12px; display: flex; align-items: center"
+  >
+    <div class="favicon" style="margin-right: 10px">
+      <svg style="width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+      </svg>
+    </div>
+    <div class="url_wrapper">
+      <span class="url_o1">
+        <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal"
+          >Search Results Summary</span
+        >
+      </span>
+    </div>
   </div>
-  <div id="ai-summary-content-wrapper" style="position: relative">
-    <div
-      id="ai-summary-content"
-      style="
-        color: #cbd5e1;
-        line-height: 1.6;
-        font-size: 15px;
-        min-height: 60px;
-        max-height: 200px;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      "
-    >
-      <div style="display: flex; align-items: center; gap: 8px; color: #64748b">
-        <div
-          class="spinner"
-          style="
-            width: 16px;
-            height: 16px;
-            border: 2px solid #334155;
-            border-top-color: #497cff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          "
-        ></div>
-        <span>Generating summary...</span>
+  <div style="padding: 10px 12px 16px">
+    <div id="ai-summary-content-wrapper" style="position: relative">
+      <div
+        id="ai-summary-content"
+        style="
+          color: var(--color-base-font);
+          line-height: 1.5;
+          font-size: 15px;
+          min-height: 60px;
+          max-height: 200px;
+          overflow: hidden;
+          transition: max-height 0.3s ease;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--color-result-publishdate-font)">
+          <div
+            class="spinner"
+            style="
+              width: 16px;
+              height: 16px;
+              border: 2px solid var(--color-result-border);
+              border-top-color: var(--color-result-link-font);
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            "
+          ></div>
+          <span>Generating summary...</span>
+        </div>
       </div>
+      <div
+        id="summary-fade-overlay"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 40px;
+          background: linear-gradient(to bottom, transparent, var(--color-result-background));
+          pointer-events: none;
+          display: none;
+          z-index: 1;
+        "
+      ></div>
+    </div>
+    <div id="summary-expand-btn" style="display: none; text-align: center">
+      <button
+        id="toggle-summary"
+        class="button"
+        style="
+          border: 1px solid var(--color-result-border);
+          color: var(--color-base-font);
+          background: var(--color-result-background);
+          padding: 6px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          margin-top: 8px;
+          width: 100%;
+        "
+      >
+        Show more
+      </button>
     </div>
     <div
-      id="summary-fade-overlay"
       style="
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: linear-gradient(to bottom, transparent, #1e293ba8, #1e293b);
-        pointer-events: none;
-        display: none;
-        z-index: 1;
-      "
-    ></div>
-  </div>
-  <div id="summary-expand-btn" style="display: none; text-align: center">
-    <button
-      id="toggle-summary"
-      style="
-        width: 100%;
-        background: none;
-        border: 1px solid #497cff;
-        color: #497cff;
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        line-height: normal;
+        padding-top: 12px;
+        border-top: 1px solid var(--color-result-border);
+        font-size: 12px;
+        color: var(--color-result-publishdate-font);
       "
     >
-      Show more
-    </button>
-  </div>
-  <div style="padding-top: 12px; border-top: 1px solid #334155; font-size: 12px; color: #64748b">
-    Powered by {{MODEL_NAME}}
-  </div>
-  <div style="margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.4">
-    Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+      Powered by {{MODEL_NAME}}
+    </div>
+    <div style="margin-top: 8px; font-size: 11px; color: var(--color-result-publishdate-font); line-height: 1.4">
+      Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+    </div>
   </div>
 </div>
 <style>
@@ -96,9 +113,9 @@
 
   /* Code block styling */
   #ai-summary-content pre {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 6px;
+    background-color: var(--color-result-keyvalue-odd);
+    border: 1px solid var(--color-result-border);
+    border-radius: 4px;
     padding: 12px;
     margin: 10px 0;
     overflow-x: auto;
@@ -107,7 +124,7 @@
   }
 
   #ai-summary-content code {
-    background-color: rgba(139, 92, 246, 0.1);
+    background-color: var(--color-result-keyvalue-even);
     border-radius: 3px;
     padding: 2px 4px;
     font-family: "Consolas", "Monaco", "Courier New", monospace;
@@ -122,10 +139,10 @@
 
   /* Other markdown elements */
   #ai-summary-content blockquote {
-    border-left: 4px solid #497cff;
+    border-left: 4px solid var(--color-result-link-font);
     margin: 10px 0;
     padding-left: 15px;
-    color: #94a3b8;
+    color: var(--color-result-publishdate-font);
     font-style: italic;
   }
 
@@ -143,6 +160,16 @@
     margin: 10px 0;
   }
 
+  /* Link styling */
+  #ai-summary-content a {
+    color: var(--color-result-link-font);
+    text-decoration: none;
+  }
+
+  #ai-summary-content a:hover {
+    text-decoration: underline;
+  }
+
   /* Table styling */
   #ai-summary-content table {
     width: 100%;
@@ -153,23 +180,23 @@
 
   #ai-summary-content th,
   #ai-summary-content td {
-    border: 1px solid #334155;
+    border: 1px solid var(--color-result-border);
     padding: 8px 12px;
     text-align: center;
-    color: #cbd5e1;
+    color: var(--color-base-font);
     width: auto;
     white-space: normal;
     word-wrap: break-word;
   }
 
   #ai-summary-content th {
-    background-color: rgba(51, 65, 85, 0.5);
-    color: #f1f5f9;
+    background-color: var(--color-result-keyvalue-odd);
+    color: var(--color-base-font);
     font-weight: 600;
   }
 
   #ai-summary-content tr:nth-child(even) {
-    background-color: rgba(30, 41, 59, 0.5);
+    background-color: var(--color-result-keyvalue-even);
   }
 
   /* Table wrapper for horizontal scrolling */
@@ -177,8 +204,9 @@
     overflow-x: auto;
     margin: 15px 0;
     -webkit-overflow-scrolling: touch; /* For iOS devices */
-    border: 1px solid #334155;
-    border-radius: 6px;
+    border: 1px solid var(--color-result-border);
+    border-radius: 4px;
+    background-color: var(--color-result-background);
   }
 
   /* Responsive table styling for small screens */
@@ -192,6 +220,10 @@
     #ai-summary-content .table-wrapper table td {
       display: table-cell !important;
       width: auto !important;
+    }
+
+    #ai-summary-container {
+      margin: 10px 0.5rem;
     }
   }
 </style>
