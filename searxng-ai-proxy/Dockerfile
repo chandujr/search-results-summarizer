@@ -10,6 +10,10 @@ RUN npm config set registry https://registry.npmmirror.com && \
     npm install --production
 
 COPY server.js ./
+COPY ./config ./config
+COPY ./services ./services
+COPY ./utils ./utils
+COPY ./ai ./ai
 COPY ./templates ./templates
 
 EXPOSE 3000
