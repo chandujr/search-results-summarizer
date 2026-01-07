@@ -1,5 +1,6 @@
 services:
   search-results-summarizer:
+    image: search-results-summarizer
     build: ./search-results-summarizer
     container_name: search-results-summarizer
     ports:
