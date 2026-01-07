@@ -10,6 +10,19 @@ const config = require("../../config");
 async function makeRequest(req) {
   const targetUrl = `${config.SEARCH_URL}${req.url}`;
 
+  // Determine if this is a request for binary content (images, favicons, etc.)
+  const isBinaryContent =
+    req.url.includes("/favicon") ||
+    req.url.includes("/banner/") ||
+    req.url.includes("/proxy") ||
+    req.headers.accept?.includes("image/") ||
+    req.path?.endsWith(".ico") ||
+    req.path?.endsWith(".png") ||
+    req.path?.endsWith(".jpg") ||
+    req.path?.endsWith(".jpeg") ||
+    req.path?.endsWith(".gif") ||
+    req.path?.endsWith(".svg");
+
   return axios({
     method: req.method,
     url: targetUrl,
@@ -21,7 +34,7 @@ async function makeRequest(req) {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     },
-    responseType: "text",
+    responseType: isBinaryContent ? "arraybuffer" : "text",
     validateStatus: () => true,
     maxRedirects: 5,
   });

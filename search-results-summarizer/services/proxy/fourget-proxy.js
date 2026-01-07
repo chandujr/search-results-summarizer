@@ -20,74 +20,41 @@ async function handleAutocomplete(req, res) {
   }
 }
 
-async function handleImageProxy(req, res) {
-  const imageUrl = req.query.i;
-  if (!imageUrl) {
-    return res.status(400).send("Missing image URL parameter");
-  }
+async function handleSearchRequest(req, res) {
+  const query = extractQuery(req);
+  const isSearchRequest = query && query.trim().length > 0;
+  const isGenSearch = isGeneralSearch(req);
 
-  try {
-    const response = await axios({
-      method: "GET",
-      url: `${config.SEARCH_URL}/proxy?i=${encodeURIComponent(imageUrl)}`,
-      responseType: "stream",
-      headers: {
-        "User-Agent":
-          req.headers["user-agent"] ||
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept: req.headers["accept"] || "image/*",
-        "Accept-Encoding": req.headers["accept-encoding"],
-      },
-      validateStatus: () => true,
-      maxRedirects: 5,
-      timeout: 15000,
-    });
+  const response = await makeRequest(req);
+  forwardHeaders(response, res);
 
-    Object.entries(response.headers).forEach(([key, value]) => {
-      if (["content-type", "cache-control", "etag", "content-length"].includes(key.toLowerCase())) {
-        res.setHeader(key, value);
+  if (
+    isSearchRequest &&
+    config.SUMMARY_ENABLED &&
+    isGenSearch &&
+    response.headers["content-type"]?.includes("text/html")
+  ) {
+    log(`Processing HTML response for general search summary injection`);
+    const html = response.data.toString();
+    const results = extractResults(html);
+
+    log(`Extracted ${results.length} results from HTML for ${config.ENGINE_NAME}`);
+
+    const summarizeResult = shouldSummarize(query, results);
+    const isRateLimited = checkRateLimit(query);
+
+    if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
+      const summaryTemplate = getActiveTemplate();
+      const enhancedHTML = injectSummary(html, query, results, summaryTemplate);
+      return res.status(response.status).send(enhancedHTML);
+    } else {
+      if (summarizeResult.reason) {
+        log(`Summary not generated: ${summarizeResult.reason}`);
       }
-    });
-
-    return response.data.pipe(res);
-  } catch (error) {
-    log("Image proxy error: " + error.message);
-    return res.status(500).send("Error proxying image");
-  }
-}
-
-async function handleFaviconProxy(req, res) {
-  const faviconUrl = req.query.s;
-  if (!faviconUrl) {
-    return res.status(400).send("Missing favicon URL parameter");
-  }
-
-  try {
-    const response = await axios({
-      method: "GET",
-      url: `${config.SEARCH_URL}/favicon?s=${encodeURIComponent(faviconUrl)}`,
-      responseType: "arraybuffer",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept: req.headers["accept"] || "image/*",
-      },
-      validateStatus: () => true,
-      maxRedirects: 5,
-      timeout: 10000,
-    });
-
-    const contentType = response.headers["content-type"];
-    if (contentType) {
-      res.setHeader("Content-Type", contentType);
+      return res.status(response.status).send(html);
     }
-
-    res.setHeader("Cache-Control", "public, max-age=86400");
-
-    return res.status(response.status).send(response.data);
-  } catch (error) {
-    log("Favicon proxy error: " + error.message);
-    return res.status(500).send("Error proxying favicon");
+  } else {
+    res.status(response.status).send(response.data);
   }
 }
 
@@ -149,44 +116,6 @@ async function handleSettings(req, res) {
   }
 }
 
-async function handleSearchRequest(req, res) {
-  const query = extractQuery(req);
-  const isSearchRequest = query && query.trim().length > 0;
-  const isGenSearch = isGeneralSearch(req);
-
-  const response = await makeRequest(req);
-  forwardHeaders(response, res);
-
-  if (
-    isSearchRequest &&
-    config.SUMMARY_ENABLED &&
-    isGenSearch &&
-    response.headers["content-type"]?.includes("text/html")
-  ) {
-    log(`Processing HTML response for general search summary injection`);
-    const html = response.data.toString();
-    const results = extractResults(html);
-
-    log(`Extracted ${results.length} results from HTML for ${config.ENGINE_NAME}`);
-
-    const summarizeResult = shouldSummarize(query, results);
-    const isRateLimited = checkRateLimit(query);
-
-    if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
-      const summaryTemplate = getActiveTemplate();
-      const enhancedHTML = injectSummary(html, query, results, summaryTemplate);
-      return res.status(response.status).send(enhancedHTML);
-    } else {
-      if (summarizeResult.reason) {
-        log(`Summary not generated: ${summarizeResult.reason}`);
-      }
-      return res.status(response.status).send(html);
-    }
-  } else {
-    res.status(response.status).send(response.data);
-  }
-}
-
 async function handleOtherRequests(req, res) {
   const response = await makeRequest(req);
   forwardHeaders(response, res);
@@ -206,8 +135,6 @@ function registerRoutes(app) {
   app.get("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
 
   // Engine-specific endpoints
-  app.get("/proxy", (req, res) => handleProxyRequest(req, res, handleImageProxy));
-  app.get("/favicon", (req, res) => handleProxyRequest(req, res, handleFaviconProxy));
   app.get("/settings", (req, res) => handleProxyRequest(req, res, handleSettings));
 
   // Handle all other requests
