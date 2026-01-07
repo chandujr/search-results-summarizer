@@ -65,9 +65,9 @@ async function handleOtherRequests(req, res) {
 }
 
 function registerRoutes(app) {
-  // Unified endpoints
-  app.all("/search", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
-  app.all("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
+  // Unified endpoints (must be registered before catch-all)
+  app.get("/search", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
+  app.get("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
 
   // Handle all other requests
   app.all("*", (req, res) => handleProxyRequest(req, res, handleSearchRequest));

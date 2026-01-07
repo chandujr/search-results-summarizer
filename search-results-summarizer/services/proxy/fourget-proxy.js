@@ -194,9 +194,16 @@ async function handleOtherRequests(req, res) {
 }
 
 function registerRoutes(app) {
-  // Unified endpoints
-  app.all("/search", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
-  app.all("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
+  // Unified endpoints (must be registered before catch-all)
+  app.get("/search", (req, res) => {
+    // Modify URL to 4get's endpoint and query parameter
+    const query = req.query.q;
+    delete req.query.q;
+    req.query.s = query;
+    req.url = "/web?" + new URLSearchParams(req.query).toString();
+    return handleProxyRequest(req, res, handleSearchRequest);
+  });
+  app.get("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
 
   // Engine-specific endpoints
   app.get("/proxy", (req, res) => handleProxyRequest(req, res, handleImageProxy));
