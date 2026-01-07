@@ -1,7 +1,7 @@
 {
-  "name": "searxng-ai-proxy",
+  "name": "search-results-summarizer",
   "version": "2.0.0",
-  "description": "AI-powered summary proxy for SearXNG with streaming support",
+  "description": "AI-powered summary proxy for search engines with streaming support",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

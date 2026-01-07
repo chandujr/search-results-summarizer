@@ -1,30 +1,45 @@
-# SearXNG AI Proxy
+# Search Results Summarizer
 
-AI-powered search summaries for SearXNG and 4get using OpenRouter. Works transparently with your existing search engine installation.
+AI-powered search summaries for any search engine using OpenRouter. Works transparently with your existing search engine installation.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-searxng-ai-proxy-project/
+search-results-summarizer/
 ├── docker-compose.yml
 ├── .env
 ├── README.md
-└── searxng-ai-proxy/
+└── search-results-summarizer/
     ├── Dockerfile
     ├── package.json
     ├── server.js
+    ├── config/
+    │   └── index.js
+    ├── services/
+    │   └── proxy/
+    │       ├── base-proxy.js
+    │       ├── searxng-proxy.js
+    │       └── fourget-proxy.js
+    ├── ai/
+    │   ├── openrouter-client.js
+    │   └── summary-generator.js
+    ├── utils/
+    │   ├── html-processor.js
+    │   ├── rate-limiter.js
+    │   ├── logger.js
+    │   └── template-loader.js
     └── templates/
         ├── summary-template-searxng.html
         └── summary-template-4get.html
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Create Project Structure
 
 ```bash
-mkdir -p searxng-ai-proxy-project/searxng-ai-proxy
-cd searxng-ai-proxy-project
+mkdir -p search-results-summarizer/search-results-summarizer
+cd search-results-summarizer
 ```
 
 Copy all the provided files into their respective locations.
@@ -48,34 +63,34 @@ See all models: https://openrouter.ai/models
 docker-compose up -d
 ```
 
-### 4. Configure Brave Browser
+### 4. Configure Brave Browser (Optional)
 
 1. Open Brave Settings → Search Engine
 2. Click "Manage search engines and site search"
 3. Click "Add" button
 4. Fill in:
-   - **Search engine**: SearXNG AI
-   - **Shortcut**: searxng
+   - **Search engine**: Search Results Summarizer
+   - **Shortcut**: srs
    - **URL**: `http://localhost:3000/search?q=%s`
 5. Click "Add"
-6. Click the three dots next to "SearXNG AI" and select "Make default"
+6. Click the three dots next to "Search Results Summarizer" and select "Make default"
 
-## ✅ Test It
+## Test It
 
-Visit: `http://localhost:3000/search?q=artificial+intelligence`
+Visit: `http://localhost:3000/search?q=latest+amd+graphics+card+price+germany`
 
 You should see search results with an AI summary at the top!
 
-## 🎛️ Configuration Options
+## Configuration Options
 
 Edit `docker-compose.yml` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-|`SEARCH_URL` | `http://localhost:8888` | URL of the search engine (SearXNG: 8888, 4get: 8081) |
+|`SEARCH_URL` | `http://localhost:8888` | URL of the search engine |
 | `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
-| `MAX_RESULTS_FOR_SUMMARY` | `5` | Number of results to summarize |
+| `MAX_RESULTS_FOR_SUMMARY` | `7` | Number of results to summarize |
 
 ### Switching Between Search Engines
 
@@ -92,29 +107,23 @@ Then restart:
 docker-compose up -d --build
 ```
 
-## 🛠️ Useful Commands
+## Useful Commands
 
 ```bash
 # Start services
 docker-compose up -d
 
 # View logs
-docker-compose logs -f searxng-ai-proxy
+docker-compose logs -f search-results-summarizer
 
 # Stop services
 docker-compose down
 
 # Restart after config change
-docker-compose restart searxng-ai-proxy
-
-# Rebuild
 docker-compose up -d --build
-
-# Temporarily disable summaries
-docker-compose exec searxng-ai-proxy sh -c 'SUMMARY_ENABLED=false npm start'
 ```
 
-## 🗑️ Complete Removal
+## Complete Removal
 
 To completely remove everything:
 
@@ -123,27 +132,26 @@ To completely remove everything:
 docker-compose down
 
 # Remove Docker images
-docker rmi searxng-ai-proxy-project-searxng-ai-proxy
+docker rmi search-results-summarizer-search-results-summarizer
 
 # Delete project folder
 cd ..
-rm -rf searxng-ai-proxy-project
+rm -rf search-results-summarizer
 ```
 
 That's it! No global files, no system pollution.
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 **Summary not appearing?**
-- Check logs: `docker-compose logs searxng-ai-proxy`
+- Check logs: `docker-compose logs search-results-summarizer`
 - Verify API key in `.env`
 - Verify AI model ID in `.env`
+- Check your OpenRouter quota
 - Ensure `SUMMARY_ENABLED=true`
 
 **"Proxy Error" message?**
-- Check your search engine is running: 
-  - SearXNG: `curl http://localhost:8888`
-  - 4get: `curl http://localhost:8081`
+- Check if your search engine is running
 - Verify network connectivity between containers
 - Ensure SEARCH_URL and ENGINE_NAME are correctly set
 
@@ -151,24 +159,22 @@ That's it! No global files, no system pollution.
 - Switch to faster model
 - Reduce `MAX_RESULTS_FOR_SUMMARY`
 
-## 🔒 Privacy Note
+## Privacy Note
 
 - Summaries are generated by sending search results to OpenRouter
 - Your search queries and top results are sent to the AI provider
-- No data is stored by this proxy (stateless)
+- No data is stored by this proxy
 - Consider privacy implications before use
 
-## 🔧 Adding Support for New Search Engines
+## Adding Support for New Search Engines
 
 To add support for a new search engine:
 
 1. Create a new template file: `templates/summary-template-{engine}.html`
-2. Update `server.js` to add:
-   - Result extraction logic for the engine's HTML structure
-   - Injection logic for the correct container element
-   - URL parameter handling if different
-3. Set ENGINE_NAME to the new engine name in docker-compose.yml
+2. Create a new proxy service: `services/proxy/{engine}-proxy.js`
+3. Update `server.js` to register the new routes
+4. Set `SEARCH_URL` and `ENGINE_NAME` of the new engine in `docker-compose.yml`
 
-## 📝 License
+## License
 
 GPL-3.0

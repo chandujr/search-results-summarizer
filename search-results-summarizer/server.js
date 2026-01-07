@@ -54,7 +54,7 @@ if (config.ENGINE_NAME === "4get") {
 
 // Start server
 app.listen(config.PORT, config.HOST, () => {
-  log(`Search Engine AI Proxy running on port ${config.PORT}`);
+  log(`Search Results Summarizer running on port ${config.PORT}`);
   log(`Proxying to: ${config.SEARCH_URL}`);
   log(`Search Engine: ${config.ENGINE_NAME}`);
   log(`AI Model: ${config.OPENROUTER_MODEL}`);

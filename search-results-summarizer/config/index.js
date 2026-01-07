@@ -1,6 +1,6 @@
 const path = require("path");
 
-// Environment configuration
+// Environment configuration for Search Results Summarizer
 module.exports = {
   // Search engine configuration
   SEARCH_URL: process.env.SEARCH_URL || "http://localhost:8888",

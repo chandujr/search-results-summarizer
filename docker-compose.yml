@@ -1,7 +1,7 @@
 services:
-  searxng-ai-proxy:
-    build: ./searxng-ai-proxy
-    container_name: searxng-ai-proxy
+  search-results-summarizer:
+    build: ./search-results-summarizer
+    container_name: search-results-summarizer
     ports:
       - "3000:3000"
     environment:

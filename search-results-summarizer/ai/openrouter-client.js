@@ -16,7 +16,7 @@ const openrouter = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "http://localhost:3000",
-    "X-Title": "SearXNG AI Proxy",
+    "X-Title": "Search Results Summarizer",
   },
   httpAgent: httpsAgent,
 });
@@ -62,7 +62,7 @@ function createAIPrompt(query, resultsText, dateToday) {
       - If multiple sources agree on facts, state them directly
       - If sources disagree, note the disagreement
       - Use only the information in the sources
-      - Do not add hyperlinks in the summary
+      - Do not add non-secure hyperlinks in the summary
       - For any date-related calculations or age calculations, use today's date ${dateToday}
 
       SOURCES:
