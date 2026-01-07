@@ -141,7 +141,14 @@ async function createSummaryStream(query, results, res) {
 
   try {
     const topResults = results.slice(0, config.MAX_RESULTS);
-    const resultsText = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
+    const resultsText = topResults
+      .map((r, i) => {
+        // Strip HTML tags from content to improve AI summarization
+        const originalContent = r.content || r.url;
+        const cleanContent = originalContent.replace(/<[^>]*>?/g, "");
+        return `[${i + 1}] ${r.title}\n${cleanContent}`;
+      })
+      .join("\n\n");
     const dateToday = getTodayDate();
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
