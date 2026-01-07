@@ -4,6 +4,7 @@
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 12px;
     padding: 24px;
+    padding-bottom: 12px;
     margin: 20px 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
     border: 1px solid #334155;
@@ -141,6 +142,58 @@
   #ai-summary-content p {
     margin: 10px 0;
   }
+
+  /* Table styling */
+  #ai-summary-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    table-layout: auto;
+  }
+
+  #ai-summary-content th,
+  #ai-summary-content td {
+    border: 1px solid #334155;
+    padding: 8px 12px;
+    text-align: center;
+    color: #cbd5e1;
+    width: auto;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  #ai-summary-content th {
+    background-color: rgba(51, 65, 85, 0.5);
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  #ai-summary-content tr:nth-child(even) {
+    background-color: rgba(30, 41, 59, 0.5);
+  }
+
+  /* Table wrapper for horizontal scrolling */
+  #ai-summary-content .table-wrapper {
+    overflow-x: auto;
+    margin: 15px 0;
+    -webkit-overflow-scrolling: touch; /* For iOS devices */
+    border: 1px solid #334155;
+    border-radius: 6px;
+  }
+
+  /* Responsive table styling for small screens */
+  @media (max-width: 1000px) {
+    #ai-summary-content .table-wrapper table {
+      min-width: 600px !important; /* Ensure table has minimum width for readability */
+      display: table !important;
+    }
+
+    #ai-summary-content .table-wrapper table th,
+    #ai-summary-content .table-wrapper table td {
+      display: table-cell !important;
+      width: auto !important;
+    }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
@@ -247,6 +300,18 @@
       if (data.content) {
         summaryText += data.content;
         container.innerHTML = converter.makeHtml(summaryText);
+
+        // Wrap tables in a div for horizontal scrolling on small screens
+        const tables = container.querySelectorAll('table');
+        tables.forEach(table => {
+          if (!table.parentNode.classList.contains('table-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-wrapper';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+          }
+        });
+
         checkExpandButton();
       }
       return false; // Continue processing
