@@ -1,11 +1,7 @@
 const cheerio = require("cheerio");
 const config = require("../config");
 
-/**
- * Rewrite URLs in HTML to use the proxy
- * @param {string} html - HTML content
- * @returns {string} - Modified HTML with rewritten URLs
- */
+// Rewrite URLs in HTML to point to our proxy instead of the original search engine
 function rewriteUrls(html) {
   if (config.ENGINE_NAME === "4get") {
     html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
@@ -18,11 +14,6 @@ function rewriteUrls(html) {
   return html;
 }
 
-/**
- * Extract search results from HTML based on search engine type
- * @param {string} html - HTML content
- * @returns {Array} - Array of search results
- */
 function extractResults(html) {
   const $ = cheerio.load(html);
   const results = [];
@@ -56,14 +47,6 @@ function extractResults(html) {
   return results;
 }
 
-/**
- * Inject summary HTML into the search results page
- * @param {string} html - Original HTML
- * @param {string} query - Search query
- * @param {Array} results - Search results
- * @param {string} summaryTemplate - Template for the summary
- * @returns {string} - Modified HTML with summary
- */
 function injectSummary(html, query, results, summaryTemplate) {
   if (!config.SUMMARY_ENABLED || !results || results.length === 0) {
     return html;
@@ -78,7 +61,6 @@ function injectSummary(html, query, results, summaryTemplate) {
   // Rewrite URLs in the original HTML
   html = rewriteUrls(html);
 
-  // Use cheerio to find and inject summary properly based on the search engine
   const $ = cheerio.load(html);
 
   if (config.ENGINE_NAME === "4get") {
@@ -93,7 +75,6 @@ function injectSummary(html, query, results, summaryTemplate) {
     }
   }
 
-  // Return the modified HTML
   return $.html();
 }
 

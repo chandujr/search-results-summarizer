@@ -1,17 +1,11 @@
 const config = require("../config");
 const { log } = require("./logger");
 
-// Simple rate limiter to prevent spam
 const requestCache = new Map();
 
-// Clear the request cache at startup
 requestCache.clear();
 
-/**
- * Check if a query should be rate limited
- * @param {string} query - Search query
- * @returns {boolean} - True if rate limited, false otherwise
- */
+// Check if a query should be rate limited to prevent spam
 function checkRateLimit(query) {
   if (!query) return false;
 
@@ -24,11 +18,11 @@ function checkRateLimit(query) {
     return true;
   }
 
-  // Update the last request time
+  // Update the last request time for this query
   requestCache.set(key, now);
 
-  // Clean up old entries
-  const cutoff = now - 60000; // 1 minute
+  // Clean up old entries older than 1 minute to prevent memory leaks
+  const cutoff = now - 60000;
   for (const [k, v] of requestCache.entries()) {
     if (v < cutoff) {
       requestCache.delete(k);

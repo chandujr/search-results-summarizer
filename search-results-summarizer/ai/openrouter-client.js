@@ -3,7 +3,7 @@ const https = require("https");
 const config = require("../config");
 const { log } = require("../utils/logger");
 
-// Force IPv4 for all HTTPS requests
+// Force IPv4 for all HTTPS requests to avoid connection issues
 const httpsAgent = new https.Agent({
   family: 4,
   keepAlive: true,
@@ -21,13 +21,6 @@ const openrouter = new OpenAI({
   httpAgent: httpsAgent,
 });
 
-/**
- * Create AI prompt for summarization
- * @param {string} query - Search query
- * @param {string} resultsText - Text of search results
- * @param {string} dateToday - Today's date
- * @returns {Array} - Array of messages for the AI
- */
 function createAIPrompt(query, resultsText, dateToday) {
   return [
     {
@@ -71,10 +64,6 @@ function createAIPrompt(query, resultsText, dateToday) {
   ];
 }
 
-/**
- * Get today's date in a readable format
- * @returns {string} - Formatted date string
- */
 function getTodayDate() {
   return new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -83,17 +72,11 @@ function getTodayDate() {
   });
 }
 
-/**
- * Handle streaming response from OpenRouter
- * @param {Object} stream - Stream from OpenRouter
- * @param {Object} res - Express response object
- */
 async function handleStreamResponse(stream, res) {
   log("Stream started");
   let chunkCount = 0;
 
   for await (const chunk of stream) {
-    // Try different possible locations of content in the chunk
     const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.text || chunk.content || "";
 
     if (content) {
@@ -107,11 +90,6 @@ async function handleStreamResponse(stream, res) {
   res.end();
 }
 
-/**
- * Handle streaming errors
- * @param {Object} res - Express response object
- * @param {Error} error - Error object
- */
 function handleStreamError(res, error) {
   log("Streaming error: " + error.message);
 
@@ -123,12 +101,6 @@ function handleStreamError(res, error) {
   }
 }
 
-/**
- * Create a streaming completion for summarizing search results
- * @param {string} query - Search query
- * @param {Array} results - Array of search results
- * @param {Object} res - Express response object
- */
 async function createSummaryStream(query, results, res) {
   if (!config.OPENROUTER_API_KEY || !config.SUMMARY_ENABLED) {
     log("Summary not enabled or API key missing");

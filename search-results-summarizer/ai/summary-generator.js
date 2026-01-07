@@ -1,14 +1,7 @@
 const { log } = require("../utils/logger");
 const config = require("../config");
 
-/**
- * Function to determine if a query should be summarized
- * @param {string} query - Search query
- * @param {Array} results - Array of search results
- * @returns {Object} - Object with shouldSummarize boolean and optional reason
- */
 function shouldSummarize(query, results) {
-  // summary will not be generated if query contains these words...
   const excludeWords = [
     "github",
     "gitlab",
@@ -25,7 +18,6 @@ function shouldSummarize(query, results) {
     "framework",
   ];
 
-  // ...but summary will be generated if it also contains these words
   const excludeOverrides = [
     "what",
     "why",
@@ -56,7 +48,6 @@ function shouldSummarize(query, results) {
   const keywordCount = keywords.length;
   const resultCount = results.length;
 
-  // Check if we have enough keywords and results
   if (keywordCount < 3 || resultCount < 3) {
     return {
       shouldSummarize: false,
@@ -64,11 +55,9 @@ function shouldSummarize(query, results) {
     };
   }
 
-  // Analyze query intent to determine if summary would be valuable
   const queryLower = query.toLowerCase();
   const queryWords = queryLower.split(/\s+/);
 
-  // Check for whole word matches in exclude overrides
   const hasExcludeOverrides = queryWords.some((queryWord) =>
     excludeOverrides.some((overrideWord) => queryWord === overrideWord),
   );
@@ -77,7 +66,6 @@ function shouldSummarize(query, results) {
     return { shouldSummarize: true };
   }
 
-  // Check for whole word matches in exclude words
   for (const word of excludeWords) {
     if (queryWords.includes(word)) {
       return {
@@ -90,11 +78,6 @@ function shouldSummarize(query, results) {
   return { shouldSummarize: true };
 }
 
-/**
- * Check if a search request is for a general search (not news, videos, etc.)
- * @param {Object} req - Express request object
- * @returns {boolean} - True if this is a general search request
- */
 function isGeneralSearch(req) {
   if (config.ENGINE_NAME === "4get") {
     return req.path.startsWith("/web") || req.path === "/";
@@ -105,11 +88,6 @@ function isGeneralSearch(req) {
   return false;
 }
 
-/**
- * Extract query from request based on search engine type
- * @param {Object} req - Express request object
- * @returns {string} - Extracted search query
- */
 function extractQuery(req) {
   return config.ENGINE_NAME === "4get" ? req.query.s || req.body.s : req.query.q || req.body.q;
 }

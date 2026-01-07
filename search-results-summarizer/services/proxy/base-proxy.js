@@ -2,11 +2,6 @@ const axios = require("axios");
 const { log } = require("../../utils/logger");
 const config = require("../../config");
 
-/**
- * Make a request to the target search engine
- * @param {Object} req - Express request object
- * @returns {Object} - Response from the target server
- */
 async function makeRequest(req) {
   const targetUrl = `${config.SEARCH_URL}${req.url}`;
 
@@ -53,12 +48,6 @@ function forwardHeaders(targetResponse, res) {
   });
 }
 
-/**
- * Handle proxy requests with error handling
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} handler - Custom handler function
- */
 async function handleProxyRequest(req, res, handler) {
   try {
     await handler(req, res);

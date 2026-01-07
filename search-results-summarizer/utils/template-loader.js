@@ -3,17 +3,14 @@ const path = require("path");
 const config = require("../config");
 const { log } = require("./logger");
 
-// Cache for loaded templates
+// Cache for loaded templates to avoid repeated file reads
 let activeTemplate;
 let summaryTemplateSearxng;
 let summaryTemplate4get;
 
-/**
- * Load and cache the HTML templates based on search engine type
- */
 function loadTemplates() {
   try {
-    // Always load both templates for flexibility
+    // Always load both templates for flexibility when switching engines
     summaryTemplateSearxng = fs.readFileSync(config.SEARXNG_TEMPLATE, "utf8");
     summaryTemplate4get = fs.readFileSync(config.FOURGET_TEMPLATE, "utf8");
 
@@ -28,21 +25,16 @@ function loadTemplates() {
   }
 }
 
-/**
- * Get the currently active template
- * @returns {string} - Active template content
- */
 function getActiveTemplate() {
+  // Load templates if they haven't been loaded yet
   if (!activeTemplate) {
     loadTemplates();
   }
   return activeTemplate;
 }
 
-/**
- * Reload templates
- */
 function reloadTemplates() {
+  // Force reload of templates from disk
   return loadTemplates();
 }
 
