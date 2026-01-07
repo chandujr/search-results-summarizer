@@ -39,9 +39,8 @@ For Brave Browser:
 4. Fill in:
    - **Search engine**: Search Results Summarizer
    - **Shortcut**: srs
-   - **URL**:
-      - SearXNG: `http://localhost:3000/search?q=%s`
-      - 4get: `http://localhost:3000/web?s=%s`
+   - **URL**: `http://localhost:3000/search?q=%s`
+   - **Suggestions URL**: `http://localhost:3000/ac?q=%s`
 5. Click "Add"
 6. Make it your default search engine
 
@@ -126,7 +125,7 @@ To add support for a new search engine:
 
 1. Create a new template file: `templates/summary-template-{engine}.html`
 2. Create a new proxy service: `services/proxy/{engine}-proxy.js`
-3. Update `server.js` to register the new routes
+3. Add unified endpoints `/search` and `/ac` to your proxy service
 4. Set `SEARCH_URL` and `ENGINE_NAME` in `docker-compose.yml`
 
 ## License
