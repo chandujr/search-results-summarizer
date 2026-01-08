@@ -1,6 +1,6 @@
 const axios = require("axios");
 const { log } = require("../../utils/logger");
-const config = require("../../config");
+const config = require("../../settings");
 
 async function makeRequest(req) {
   const targetUrl = `${config.ENGINE_URL}${req.url}`;

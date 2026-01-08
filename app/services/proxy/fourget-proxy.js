@@ -5,7 +5,7 @@ const { extractResults, injectSummary } = require("../../utils/html-processor");
 const { isGeneralSearch, extractQuery, shouldSummarize } = require("../../ai/summary-generator");
 const { log } = require("../../utils/logger");
 const { getActiveTemplate } = require("../../utils/template-loader");
-const config = require("../../config");
+const config = require("../../settings");
 
 async function handleAutocomplete(req, res) {
   try {

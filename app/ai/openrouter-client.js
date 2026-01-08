@@ -1,6 +1,6 @@
 const OpenAI = require("openai");
 const https = require("https");
-const config = require("../config");
+const config = require("../settings");
 const { log } = require("../utils/logger");
 
 // Force IPv4 for all HTTPS requests to avoid connection issues

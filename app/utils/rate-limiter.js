@@ -1,4 +1,4 @@
-const config = require("../config");
+const config = require("../settings");
 const { log } = require("./logger");
 
 const requestCache = new Map();

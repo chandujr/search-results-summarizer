@@ -1,5 +1,5 @@
 const cheerio = require("cheerio");
-const config = require("../config");
+const config = require("../settings");
 
 // Rewrite URLs in HTML to point to our proxy instead of the original search engine
 function rewriteUrls(html) {

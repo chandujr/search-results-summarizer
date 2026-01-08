@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const config = require("../config");
+const config = require("../settings");
 const { log } = require("./logger");
 
 // Cache for loaded templates to avoid repeated file reads

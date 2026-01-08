@@ -1,5 +1,5 @@
 const { log } = require("../utils/logger");
-const config = require("../config");
+const config = require("../settings");
 
 function shouldSummarize(query, results) {
   const excludeWords = [
