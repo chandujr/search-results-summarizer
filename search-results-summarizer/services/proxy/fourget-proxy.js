@@ -10,7 +10,7 @@ const config = require("../../config");
 async function handleAutocomplete(req, res) {
   try {
     const query = req.query.q || req.query.s || "";
-    const targetUrl = `${config.SEARCH_URL}/api/v1/ac?s=${encodeURIComponent(query)}`;
+    const targetUrl = `${config.ENGINE_URL}/api/v1/ac?s=${encodeURIComponent(query)}`;
 
     const response = await axios.get(targetUrl);
     res.status(response.status).json(response.data);
@@ -61,7 +61,7 @@ async function handleSearchRequest(req, res) {
 async function handleSettings(req, res) {
   try {
     const queryString = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
-    const targetUrl = `${config.SEARCH_URL}/settings${queryString}`;
+    const targetUrl = `${config.ENGINE_URL}/settings${queryString}`;
 
     const parsedUrl = new URL(targetUrl);
     const httpModule = parsedUrl.protocol === "https:" ? require("https") : require("http");

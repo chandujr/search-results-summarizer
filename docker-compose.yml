@@ -6,10 +6,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SEARCH_URL=http://172.17.0.1:8081 # searxng or 4get instance url
+      - ENGINE_NAME=searxng # "searxng" or "4get"
+      - ENGINE_URL=http://172.17.0.1:8888 # searxng or 4get instance url
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL}
       - SUMMARY_ENABLED=true
       - MAX_RESULTS_FOR_SUMMARY=7
-      - ENGINE_NAME=4get # "searxng" or "4get"
     restart: unless-stopped

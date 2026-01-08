@@ -3,8 +3,8 @@ const path = require("path");
 // Environment configuration for Search Results Summarizer
 module.exports = {
   // Search engine configuration
-  SEARCH_URL: process.env.SEARCH_URL || "http://localhost:8888",
   ENGINE_NAME: process.env.ENGINE_NAME || "searxng",
+  ENGINE_URL: process.env.ENGINE_URL || "http://localhost:8888",
 
   // OpenRouter configuration
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,

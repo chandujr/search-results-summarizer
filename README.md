@@ -40,7 +40,7 @@ For Brave Browser:
    - **Search engine**: Search Results Summarizer
    - **Shortcut**: srs
    - **URL**: `http://localhost:3000/search?q=%s`
-   - **Suggestions URL**: `http://localhost:3000/ac?q=%s`
+   - **Suggestions URL**: `http://localhost:3000/ac?q=%s` (in Brave, you have to edit the `Preferences` file of your browser profile to set this)
 5. Click "Add"
 6. Make it your default search engine
 
@@ -58,8 +58,8 @@ Edit `docker-compose.yml` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-|`SEARCH_URL` | `http://localhost:8888` | URL of the search engine |
 | `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
+|`ENGINE_URL` | `http://localhost:8888` | URL of the search engine |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `7` | Number of results to summarize |
 
@@ -69,8 +69,8 @@ To use 4get instead of SearXNG:
 
 ```yaml
 environment:
-  - SEARCH_URL=http://localhost:8081  # 4get URL
-  - ENGINE_NAME=4get                   # Set engine type
+  - ENGINE_NAME=4get
+  - ENGINE_URL={your-4get-instance-URL}
 ```
 
 Then restart:
@@ -106,7 +106,7 @@ docker-compose up -d --build
 **"Proxy Error" message**
 - Check if your search engine is running
 - Verify network connectivity between containers
-- Ensure SEARCH_URL and ENGINE_NAME are correctly set
+- Ensure ENGINE_NAME and ENGINE_URL are correctly set
 
 **Slow summaries**
 - Switch to faster model
@@ -126,7 +126,8 @@ To add support for a new search engine:
 1. Create a new template file: `templates/summary-template-{engine}.html`
 2. Create a new proxy service: `services/proxy/{engine}-proxy.js`
 3. Add unified endpoints `/search` and `/ac` to your proxy service
-4. Set `SEARCH_URL` and `ENGINE_NAME` in `docker-compose.yml`
+4. Add `ENGINE_NAME` conditions in other scripts
+5. Set `ENGINE_NAME` and `ENGINE_URL` in `docker-compose.yml`
 
 ## License
 

@@ -10,7 +10,7 @@ const config = require("../../config");
 async function handleAutocomplete(req, res) {
   try {
     const query = req.query.q || "";
-    const targetUrl = `${config.SEARCH_URL}/autocompleter?q=${encodeURIComponent(query)}`;
+    const targetUrl = `${config.ENGINE_URL}/autocompleter?q=${encodeURIComponent(query)}`;
 
     const response = await axios.get(targetUrl);
     res.status(response.status).json(response.data);

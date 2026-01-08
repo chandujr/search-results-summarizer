@@ -46,8 +46,8 @@ if (config.ENGINE_NAME === "4get") {
 
 app.listen(config.PORT, config.HOST, () => {
   log(`Search Results Summarizer running on port ${config.PORT}`);
-  log(`Proxying to: ${config.SEARCH_URL}`);
   log(`Search Engine: ${config.ENGINE_NAME}`);
+  log(`Proxying to: ${config.ENGINE_URL}`);
   log(`AI Model: ${config.OPENROUTER_MODEL}`);
   log(`Summary: ${config.SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
 });

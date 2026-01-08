@@ -3,7 +3,7 @@ const { log } = require("../../utils/logger");
 const config = require("../../config");
 
 async function makeRequest(req) {
-  const targetUrl = `${config.SEARCH_URL}${req.url}`;
+  const targetUrl = `${config.ENGINE_URL}${req.url}`;
 
   // Determine if this is a request for binary content (images, favicons, etc.)
   const isBinaryContent =
@@ -25,7 +25,7 @@ async function makeRequest(req) {
     data: req.body,
     headers: {
       ...req.headers,
-      host: new URL(config.SEARCH_URL).host,
+      host: new URL(config.ENGINE_URL).host,
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     },
