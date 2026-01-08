@@ -1,5 +1,5 @@
 # --------------------
-# Environment variables (secrets)
+# Environment variables
 # --------------------
 .env
 .env.*
@@ -39,11 +39,8 @@ Thumbs.db
 .idea/
 
 # --------------------
-# Git (never commit these)
-# --------------------
-.git/
-
-# --------------------
 # Others
 # --------------------
 tests/
+AGENTS.md
+.git/
