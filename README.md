@@ -2,7 +2,34 @@
 
 AI-powered search summaries for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation.
 
-## Quick Start
+## Configuration
+
+This application can be configured using a JSON configuration file, making it easy to customize settings without modifying environment variables directly. For detailed information about configuration options and Docker usage, see the [Configuration Guide](./search-results-summarizer/CONFIG.md).
+
+## Quick Start with Docker
+
+### Basic Usage (Default Configuration)
+
+```bash
+docker run -p 3000:3000 search-results-summarizer
+```
+
+### Using Custom Configuration
+
+```bash
+# Copy the example configuration
+cp config.json.example config.json
+# Edit config.json with your settings
+# Then run with volume mount
+docker run -p 3000:3000 \
+  -v $(pwd)/config:/app/custom-config \
+  -e CONFIG_VOLUME_DIR=/app/custom-config \
+  search-results-summarizer
+```
+
+If the configuration file doesn't exist at the specified location, the default configuration will be copied there for you to customize.
+
+## Quick Start with Docker Compose
 
 ### 1. Clone and Setup
 

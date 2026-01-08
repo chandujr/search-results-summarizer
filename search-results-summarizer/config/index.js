@@ -1,27 +1,93 @@
 const path = require("path");
+const fs = require("fs");
 
-// Environment configuration for Search Results Summarizer
-module.exports = {
-  // Search engine configuration
-  ENGINE_NAME: process.env.ENGINE_NAME || "searxng",
-  ENGINE_URL: process.env.ENGINE_URL || "http://localhost:8888",
+// Define required configuration properties
+const requiredConfigProperties = [
+  "ENGINE_NAME",
+  "ENGINE_URL",
+  "OPENROUTER_MODEL",
+  "SUMMARY_ENABLED",
+  "MAX_RESULTS_FOR_SUMMARY",
+  "PORT",
+  "HOST",
+  "RATE_LIMIT_MS",
+  "MAX_TOKENS",
+];
 
-  // OpenRouter configuration
-  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-  OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
-  SUMMARY_ENABLED: process.env.SUMMARY_ENABLED !== "false",
-  MAX_RESULTS: parseInt(process.env.MAX_RESULTS_FOR_SUMMARY) || 5,
-  MAX_TOKENS: 750,
+// Required environment variables
+const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
-  // Rate limiting
-  RATE_LIMIT_MS: 1000, // 1 second between requests
+// Try to load configuration from file
+const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.json";
 
-  // Server configuration
-  PORT: process.env.PORT || 3000,
-  HOST: process.env.HOST || "0.0.0.0",
+// Load .env file if it exists
+const envFilePath = "/config/.env";
 
-  // Template paths
-  TEMPLATES_PATH: path.join(__dirname, "../templates"),
-  SEARXNG_TEMPLATE: path.join(__dirname, "../templates", "summary-template-searxng.html"),
-  FOURGET_TEMPLATE: path.join(__dirname, "../templates", "summary-template-4get.html"),
+// Read and parse .env file
+const loadEnvFile = (filePath) => {
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
+
+  const envVars = {};
+  const envFileContent = fs.readFileSync(filePath, "utf8");
+
+  envFileContent.split("\n").forEach((line) => {
+    // Skip empty lines and comments
+    if (!line.trim() || line.startsWith("#")) return;
+
+    const [key, value] = line.split("=");
+    if (key && value) {
+      envVars[key.trim()] = value.trim();
+    }
+  });
+
+  return envVars;
 };
+
+// Load environment variables from .env file
+const envVars = loadEnvFile(envFilePath);
+
+// Set environment variables from .env file
+Object.keys(envVars).forEach((key) => {
+  process.env[key] = envVars[key];
+});
+
+let config;
+
+try {
+  if (!fs.existsSync(configFilePath)) {
+    throw new Error(`Configuration file not found at ${configFilePath}`);
+  }
+
+  const fileConfig = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
+
+  // Check if all required properties are present
+  const missingProperties = requiredConfigProperties.filter((prop) => !(prop in fileConfig));
+  if (missingProperties.length > 0) {
+    throw new Error(`Missing required configuration properties: ${missingProperties.join(", ")}`);
+  }
+
+  // Check if all required environment variables are present
+  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  if (missingEnvVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+  }
+
+  config = fileConfig;
+  config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  console.log(`Configuration loaded from ${configFilePath}`);
+  console.log(`Environment variables loaded from ${envFilePath}`);
+} catch (error) {
+  console.error(`Error loading configuration: ${error.message}`);
+  process.exit(1);
+}
+
+// Add derived properties
+config.MAX_RESULTS = config.MAX_RESULTS_FOR_SUMMARY;
+config.TEMPLATES_PATH = path.join(__dirname, "../templates");
+config.SEARXNG_TEMPLATE = path.join(__dirname, "../templates", "summary-template-searxng.html");
+config.FOURGET_TEMPLATE = path.join(__dirname, "../templates", "summary-template-4get.html");
+
+// Export the final configuration
+module.exports = config;
