@@ -11,7 +11,7 @@ docker build -t search-results-summarizer .
 ### With Configuration Files
 
 The application requires two configuration files:
-1. `config.json` - Application configuration
+1. `config.yaml` - Application configuration
 2. `.env` - Environment variables (including API key)
 
 ```bash
@@ -24,7 +24,7 @@ docker run -p 3000:3000 -v $(pwd)/config:/config search-results-summarizer
 
 If the configuration files don't exist in your mounted directory, the container will copy default template files there for you to customize:
 
-1. Edit `config/config.json` to configure the application settings
+1. Edit `config/config.yaml` to configure the application settings
 2. Edit `config/.env` to set your OPENROUTER_API_KEY
 
 After editing, restart the container to apply the changes:

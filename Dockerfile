@@ -15,7 +15,7 @@ COPY ./app/services ./services
 COPY ./app/utils ./utils
 COPY ./app/ai ./ai
 COPY ./app/templates ./templates
-COPY ./config/config.json.default /config/config.json.default
+COPY ./config/config.yaml.default /config/config.yaml.default
 COPY ./config/.env.default /config/.env.default
 COPY ./scripts/start.sh /scripts/
 RUN chmod +x /scripts/start.sh

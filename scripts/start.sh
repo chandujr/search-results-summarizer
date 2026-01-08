@@ -1,8 +1,8 @@
 #!/bin/sh
 
 CONFIG_DIR="/config"
-CONFIG_FILE="${CONFIG_DIR}/config.json"
-DEFAULT_CONFIG_FILE="${CONFIG_DIR}/config.json.default"
+CONFIG_FILE="${CONFIG_DIR}/config.yaml"
+DEFAULT_CONFIG_FILE="${CONFIG_DIR}/config.yaml.default"
 ENV_FILE="${CONFIG_DIR}/.env"
 DEFAULT_ENV_FILE="${CONFIG_DIR}/.env.default"
 

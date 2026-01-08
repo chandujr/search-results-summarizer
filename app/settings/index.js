@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const yaml = require("js-yaml");
 
 // Define required configuration properties
 const requiredConfigProperties = [
@@ -18,7 +19,7 @@ const requiredConfigProperties = [
 const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
 // Try to load configuration from file
-const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.json";
+const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.yaml";
 
 // Load .env file if it exists
 const envFilePath = "/config/.env";
@@ -60,7 +61,14 @@ try {
     throw new Error(`Configuration file not found at ${configFilePath}`);
   }
 
-  const fileConfig = JSON.parse(fs.readFileSync(configFilePath, "utf8"));
+  const fileContent = fs.readFileSync(configFilePath, "utf8");
+  let fileConfig;
+
+  try {
+    fileConfig = yaml.load(fileContent);
+  } catch (yamlError) {
+    throw new Error(`YAML parsing error: ${yamlError.message}`);
+  }
 
   // Check if all required properties are present
   const missingProperties = requiredConfigProperties.filter((prop) => !(prop in fileConfig));
