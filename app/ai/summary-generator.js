@@ -2,47 +2,8 @@ const { log } = require("../utils/logger");
 const config = require("../settings");
 
 function shouldSummarize(query, results) {
-  const excludeWords = [
-    "github",
-    "gitlab",
-    "download",
-    "repository",
-    "repo",
-    "link",
-    "url",
-    "tool",
-    "software",
-    "program",
-    "app",
-    "library",
-    "framework",
-  ];
-
-  const excludeOverrides = [
-    "what",
-    "why",
-    "how",
-    "when",
-    "where",
-    "who",
-    "which",
-    "can",
-    "will",
-    "would",
-    "could",
-    "should",
-    "is",
-    "are",
-    "was",
-    "were",
-    "do",
-    "does",
-    "did",
-    "example",
-    "explain",
-    "simplify",
-    "eli5",
-  ];
+  const excludeWords = config.EXCLUDE_WORDS;
+  const excludeOverrides = config.EXCLUDE_OVERRIDES;
 
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;

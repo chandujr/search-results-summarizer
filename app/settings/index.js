@@ -13,6 +13,8 @@ const requiredConfigProperties = [
   "HOST",
   "RATE_LIMIT_MS",
   "MAX_TOKENS",
+  "EXCLUDE_WORDS",
+  "EXCLUDE_OVERRIDES",
 ];
 
 // Required environment variables

@@ -11,7 +11,7 @@ ENGINE_URL: http://192.168.1.100:8888
 # AI model configuration
 # AI model to use for summarization
 # Find available models at: https://openrouter.ai/models
-OPENROUTER_MODEL: x-ai/grok-4.1-fast
+OPENROUTER_MODEL: mistralai/devstral-2512:free
 
 # Feature settings
 # Enable/disable AI summaries
@@ -34,3 +34,45 @@ RATE_LIMIT_MS: 1000
 
 # Maximum tokens for AI responses
 MAX_TOKENS: 750
+
+# Summarization filters
+# Words in search queries that prevent summarization
+EXCLUDE_WORDS:
+  - "github"
+  - "gitlab"
+  - "download"
+  - "repository"
+  - "repo"
+  - "link"
+  - "url"
+  - "tool"
+  - "software"
+  - "app"
+  - "library"
+  - "framework"
+
+# Words that override the exclude list and force summarization
+EXCLUDE_OVERRIDES:
+  - "what"
+  - "why"
+  - "how"
+  - "when"
+  - "where"
+  - "who"
+  - "which"
+  - "can"
+  - "will"
+  - "would"
+  - "could"
+  - "should"
+  - "is"
+  - "are"
+  - "was"
+  - "were"
+  - "do"
+  - "does"
+  - "did"
+  - "example"
+  - "explain"
+  - "simplify"
+  - "eli5"
