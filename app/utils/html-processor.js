@@ -48,7 +48,7 @@ function extractResults(html) {
 }
 
 function injectSummary(html, query, results, summaryTemplate) {
-  if (!config.SUMMARY_ENABLED || !results || results.length === 0) {
+  if (!results || results.length === 0) {
     return html;
   }
 

@@ -7,7 +7,6 @@ const requiredConfigProperties = [
   "ENGINE_NAME",
   "ENGINE_URL",
   "OPENROUTER_MODEL",
-  "SUMMARY_ENABLED",
   "MAX_RESULTS_FOR_SUMMARY",
   "PORT",
   "HOST",

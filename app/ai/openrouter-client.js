@@ -89,9 +89,9 @@ function handleStreamError(res, error) {
 }
 
 async function createSummaryStream(query, results, res) {
-  if (!config.OPENROUTER_API_KEY || !config.SUMMARY_ENABLED) {
-    log("Summary not enabled or API key missing");
-    return res.status(400).json({ error: "Summary not enabled or API key missing" });
+  if (!config.OPENROUTER_API_KEY) {
+    log("API key missing");
+    return res.status(400).json({ error: "API key missing" });
   }
 
   if (!query || !results) {

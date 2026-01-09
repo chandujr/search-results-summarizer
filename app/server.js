@@ -49,5 +49,5 @@ app.listen(config.PORT, config.HOST, () => {
   log(`Search Engine: ${config.ENGINE_NAME}`);
   log(`Proxying to: ${config.ENGINE_URL}`);
   log(`AI Model: ${config.OPENROUTER_MODEL}`);
-  log(`Summary: ${config.SUMMARY_ENABLED ? "Enabled (Streaming)" : "Disabled"}`);
+  log(`Summary: Enabled (Streaming)`);
 });

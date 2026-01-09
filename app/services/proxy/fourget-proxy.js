@@ -28,12 +28,7 @@ async function handleSearchRequest(req, res) {
   const response = await makeRequest(req);
   forwardHeaders(response, res);
 
-  if (
-    isSearchRequest &&
-    config.SUMMARY_ENABLED &&
-    isGenSearch &&
-    response.headers["content-type"]?.includes("text/html")
-  ) {
+  if (isSearchRequest && isGenSearch && response.headers["content-type"]?.includes("text/html")) {
     log(`Processing HTML response for general search summary injection`);
     const html = response.data.toString();
     const results = extractResults(html);

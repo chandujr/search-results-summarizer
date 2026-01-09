@@ -87,7 +87,6 @@ Edit `docker-compose.yml` to customize:
 |----------|---------|-------------|
 | `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
 |`ENGINE_URL` | `http://192.168.1.100:8888` | URL of the search engine (see Docker networking note below) |
-| `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `7` | Number of results to summarize |
 
 ### Using Different Search Engines
@@ -156,7 +155,6 @@ docker-compose up -d --build
 - Verify API key in `.env`
 - Verify AI model ID in `.env`
 - Check your OpenRouter quota
-- Ensure `SUMMARY_ENABLED=true`
 
 **"Proxy Error" message**
 - Check if your search engine is running
