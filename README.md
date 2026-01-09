@@ -86,7 +86,7 @@ Edit `docker-compose.yml` to customize:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
-|`ENGINE_URL` | `http://localhost:8888` | URL of the search engine |
+|`ENGINE_URL` | `http://192.168.1.100:8888` | URL of the search engine (see Docker networking note below) |
 | `SUMMARY_ENABLED` | `true` | Enable/disable summaries |
 | `MAX_RESULTS_FOR_SUMMARY` | `7` | Number of results to summarize |
 
@@ -104,6 +104,34 @@ Then restart:
 ```bash
 docker-compose up -d --build
 ```
+
+## Docker Networking Note
+
+**Important**: When running with Docker, you may bot be able to use `localhost` for `ENGINE_URL` if your search engine is running on the host machine. From within a Docker container, `localhost` refers to the container itself, not the host machine.
+
+To connect to a search engine running on your host machine, you have two options:
+
+1. **Use your host machine's IP address**:
+   ```bash
+   # Find your host IP
+   ip route get 1.1.1.1 | awk '{print $7}'
+   # Or on Windows/Mac
+   # Windows: ipconfig
+   # Mac: ifconfig | grep "inet " | grep -v 127.0.0.1
+   
+   # Example result: 192.168.1.100
+   # Set ENGINE_URL to: http://192.168.1.100:8081
+   ```
+2. **Use the Docker network gateway IP**:
+   ```bash
+   # Find your Docker network name
+   docker network ls | grep search-results-summarizer
+   
+   # Inspect the network to find the gateway IP
+   docker network inspect <network_name> | grep Gateway
+   # Example result: "Gateway": "172.19.0.1"
+   # Set ENGINE_URL to: http://172.19.0.1:8081
+   ```
 
 ## Commands
 
@@ -132,6 +160,7 @@ docker-compose up -d --build
 
 **"Proxy Error" message**
 - Check if your search engine is running
+- If using Docker, verify you're not using `localhost` in ENGINE_URL (see Docker networking note above)
 - Verify network connectivity between containers
 - Ensure ENGINE_NAME and ENGINE_URL are correctly set
 

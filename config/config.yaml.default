@@ -3,7 +3,10 @@
 ENGINE_NAME: searxng
 
 # URL of your search engine instance
-ENGINE_URL: http://localhost:8888
+# You may not be able to use "localhost" here, use your host machine's IP address instead:
+# 1. Find your host IP: ip route get 1.1.1.1 | awk '{print $7}'
+# 2. Set the port number as per the engine
+ENGINE_URL: http://192.168.1.100:8888
 
 # AI model configuration
 # AI model to use for summarization
