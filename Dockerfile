@@ -4,10 +4,7 @@ WORKDIR /app
 
 COPY ./app/package*.json ./
 
-RUN npm config set registry https://registry.npmmirror.com && \
-    npm config set fetch-timeout 600000 && \
-    npm config set fetch-retries 5 && \
-    npm install --production
+RUN npm install --production
 
 COPY ./app/server.js ./
 COPY ./app/settings ./settings

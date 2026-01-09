@@ -1,0 +1,10 @@
+services:
+  search-results-summarizer:
+    image: search-results-summarizer
+    build: .
+    container_name: search-results-summarizer
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/config
+    restart: unless-stopped
