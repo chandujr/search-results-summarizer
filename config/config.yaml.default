@@ -3,9 +3,10 @@
 ENGINE_NAME: searxng
 
 # URL of your search engine instance
-# You may not be able to use "localhost" here, use your host machine's IP address instead:
-# 1. Find your host IP: ip route get 1.1.1.1 | awk '{print $7}'
-# 2. Set the port number as per the engine
+# You may not be able to use "localhost" here, use either:
+# 1. Your host machine's IP: ip route get 1.1.1.1 | awk '{print $7}'
+# 2. OR, the Docker network gateway IP, e.g.,: docker network inspect search-results-summarizer_default | grep Gateway
+# 3. Set the port number as per the engine
 ENGINE_URL: http://192.168.1.100:8888
 
 # AI model configuration
