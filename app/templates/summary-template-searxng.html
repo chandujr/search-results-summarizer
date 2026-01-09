@@ -11,16 +11,16 @@
 >
   <div
     class="url_header"
-    style="border-bottom: 1px solid var(--color-result-border); padding: 8px 12px; display: flex; align-items: center"
+    style="border-bottom: 1px solid var(--color-result-border); padding: 12px; display: flex; align-items: center"
   >
-    <div class="favicon" style="margin-right: 10px">
-      <svg style="width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
+    <div class="favicon">
+      <svg style="display: block; width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
       </svg>
     </div>
     <div class="url_wrapper">
-      <span class="url_o1">
-        <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal"
+      <span class="url_o1" style="padding-bottom: 0">
+        <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal; line-height: normal"
           >Search Results Summary</span
         >
       </span>
@@ -82,24 +82,16 @@
           border-radius: 4px;
           cursor: pointer;
           font-size: 14px;
-          margin-top: 8px;
           width: 100%;
         "
       >
         Show more
       </button>
     </div>
-    <div
-      style="
-        padding-top: 12px;
-        border-top: 1px solid var(--color-result-border);
-        font-size: 12px;
-        color: var(--color-result-publishdate-font);
-      "
-    >
+    <div style="padding-top: 12px; font-size: 12px; color: var(--color-result-publishdate-font)">
       Powered by {{MODEL_NAME}}
     </div>
-    <div style="margin-top: 8px; font-size: 11px; color: var(--color-result-publishdate-font); line-height: 1.4">
+    <div style="margin-top: 4px; font-size: 11px; color: var(--color-result-publishdate-font); line-height: 1.4">
       Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
     </div>
   </div>
