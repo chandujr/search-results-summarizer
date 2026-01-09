@@ -1,6 +1,6 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const config = require("./config");
+const config = require("./settings");
 const { log } = require("./utils/logger");
 const { loadTemplates } = require("./utils/template-loader");
 const { createSummaryStream } = require("./ai/openrouter-client");
