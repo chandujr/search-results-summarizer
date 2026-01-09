@@ -1,16 +1,16 @@
 <div
   id="ai-summary-container"
   style="
-    background: #232525;
+    background: var(--282828);
     border: 1px solid var(--504945);
-    border-bottom: 2px solid #fc92a5;
+    border-bottom: 2px solid var(--8ec07c);
     padding: 15px;
     margin: 15px 0;
     border-radius: 2px;
   "
 >
   <div style="display: flex; align-items: center; margin-bottom: 12px">
-    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: #fc92a5" viewBox="0 0 24 24">
+    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
     </svg>
     <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: normal">
@@ -37,7 +37,7 @@
             width: 16px;
             height: 16px;
             border: 2px solid var(--504945);
-            border-top-color: #fc92a5;
+            border-top-color: var(--8ec07c);
             border-radius: 50%;
             animation: spin 1s linear infinite;
           "
@@ -53,7 +53,7 @@
         left: 0;
         right: 0;
         height: 40px;
-        background: linear-gradient(to bottom, transparent, #232525);
+        background: linear-gradient(to bottom, transparent, var(--282828));
         pointer-events: none;
         display: none;
         z-index: 1;
@@ -66,8 +66,8 @@
       style="
         width: 100%;
         background: none;
-        border: 1px solid #fc92a5;
-        color: #fc92a5;
+        border: 1px solid var(--8ec07c);
+        color: var(--8ec07c);
         padding: 6px 12px;
         border-radius: 2px;
         cursor: pointer;
@@ -78,10 +78,8 @@
       Show more
     </button>
   </div>
-  <div style="padding-top: 12px; border-top: 1px solid var(--504945); font-size: 12px; color: var(--928374)">
-    Powered by {{MODEL_NAME}}
-  </div>
-  <div style="margin-top: 8px; font-size: 11px; color: var(--928374); line-height: 1.4">
+  <div style="padding-top: 12px; font-size: 12px; color: var(--928374)">Powered by {{MODEL_NAME}}</div>
+  <div style="font-size: 11px; color: var(--928374); line-height: 1.4">
     Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
   </div>
 </div>
@@ -121,7 +119,7 @@
 
   /* Other markdown elements */
   #ai-summary-content blockquote {
-    border-left: 3px solid #fc92a5;
+    border-left: 3px solid var(--8ec07c);
     margin: 10px 0;
     padding-left: 15px;
     color: var(--928374);
@@ -143,7 +141,7 @@
   }
 
   #ai-summary-content a {
-    color: #fc92a5;
+    color: var(--8ec07c);
   }
 
   /* Table styling to fix 4get layout issues */
