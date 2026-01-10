@@ -1,63 +1,112 @@
 # Search Results Summarizer
 
-AI-powered search summaries for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation.
+AI-powered search results summary generator for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation.
+
+## Installation
+
+### Option 1: Using the Docker Image
+
+1. Create a configuration directory:
+   ```bash
+   mkdir -p ./search-results-summarizer/config
+   cd ./search-results-summarizer
+   ```
+
+2. Run the container:
+   ```bash
+   docker run -d --name search-results-summarizer \
+     -p 3000:3000 \
+     -v "./config:/config" \
+     search-results-summarizer:latest
+   ```
+
+3. Configure the service:
+   ```bash
+   # Edit the configuration files
+   nano ./config/config.yaml
+   nano ./config/.env
+   ```
+
+4. Restart the container to apply changes:
+   ```bash
+   docker restart search-results-summarizer
+   ```
+
+### Option 2: Using the Repository
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/chandujr/search-results-summarizer.git
+   cd search-results-summarizer
+   ```
+
+2. Copy the configuration templates:
+   ```bash
+   cp config/config.yaml.default config/config.yaml
+   cp config/.env.default config/.env
+   ```
+
+3. Edit your configuration:
+   ```bash
+   nano config/config.yaml
+   nano config/.env
+   ```
+
+4. Build and run with Docker Compose:
+   ```bash
+   docker-compose up -d --build
+   ```
 
 ## Configuration
 
-This application can be configured using a JSON configuration file, making it easy to customize settings without modifying environment variables directly. For detailed information about configuration options and Docker usage, see the [Configuration Guide](./search-results-summarizer/CONFIG.md).
+### Required Settings
 
-## Quick Start with Docker
+1. In `config/.env`, set your OpenRouter API key:
+   ```
+   OPENROUTER_API_KEY=your_api_key_here
+   ```
 
-### Basic Usage (Default Configuration)
+2. In `config/config.yaml`, configure:
+   - `ENGINE_NAME`: "searxng" or "4get"
+   - `ENGINE_URL`: URL of your search engine instance (see networking note below)
+   - `OPENROUTER_MODEL`: AI model to use for summarization (e.g., "mistralai/devstral-2512:free")
 
-```bash
-docker run -p 3000:3000 search-results-summarizer
-```
+### Optional Settings
 
-### Using Custom Configuration
+- `SUMMARY_MODE`: "auto" (automatic) or "manual" (button-triggered)
+- `MAX_RESULTS_FOR_SUMMARY`: Number of results to summarize (default: 7)
+- `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
 
-```bash
-# Copy the example configuration
-cp config.json.example config.json
-# Edit config.json with your settings
-# Then run with volume mount
-docker run -p 3000:3000 \
-  -v $(pwd)/config:/app/custom-config \
-  -e CONFIG_VOLUME_DIR=/app/custom-config \
-  search-results-summarizer
-```
+## Docker Networking Note
 
-If the configuration file doesn't exist at the specified location, the default configuration will be copied there for you to customize.
+You may not be able to use `localhost` for `ENGINE_URL` since from within a Docker container, `localhost` refers to the container itself, not the host machine.
 
-## Quick Start with Docker Compose
+To connect to your installed search engine running on your host machine:
 
-### 1. Clone and Setup
+1. **Use your host machine's IP address**:
+   ```bash
+   # Find your host IP
+   ip route get 1.1.1.1 | awk '{print $7}'
+   # Example result: 192.168.1.100
+   # Set ENGINE_URL to: http://192.168.1.100:8081
+   ```
 
-```bash
-git clone https://github.com/chandujr/search-results-summarizer.git
-cd search-results-summarizer
-```
+2. **Use the Docker network gateway IP**:
+   ```bash
+   # Find your Docker network name
+   docker network ls | grep search-results-summarizer
+   
+   # Inspect the network to find the gateway IP
+   docker network inspect <network_name> | grep Gateway
+   # Example result: "Gateway": "172.19.0.1"
+   # Set ENGINE_URL to: http://172.19.0.1:8081
+   ```
 
-### 2. Configure Environment
+## Usage
 
-Create a `.env` file and add your OpenRouter API key:
+You can access this service at `http://localhost:3000`. It will load your chosen search engine.
 
-```bash
-OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
-OPENROUTER_MODEL=model-id-here
-```
-
-Get your API key from: https://openrouter.ai/keys
-
-See all models: https://openrouter.ai/models
-
-### 3. Start Services
-
-```bash
-docker-compose up -d
-```
-
-### 4. Set as default search engine (Optional)
+You may also set this as your browser's default search engine.
 
 For Brave Browser:
 1. Open Brave Settings → Search Engine
@@ -71,117 +120,12 @@ For Brave Browser:
 5. Click "Add"
 6. Make it your default search engine
 
-For other browsers, use similar steps to add a custom search engine.
-
-## Test
-
-Visit: `http://localhost:3000/search?q=latest+amd+graphics+card+price`
-
-You should see search results with an AI summary at the top.
-
-## Configuration
-
-Edit `docker-compose.yml` to customize:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ENGINE_NAME` | `searxng` | Type of search engine (searxng or 4get) |
-|`ENGINE_URL` | `http://192.168.1.100:8888` | URL of the search engine (see Docker networking note below) |
-| `MAX_RESULTS_FOR_SUMMARY` | `7` | Number of results to summarize |
-
-### Using Different Search Engines
-
-To use 4get instead of SearXNG:
-
-```yaml
-environment:
-  - ENGINE_NAME=4get
-  - ENGINE_URL={your-4get-instance-URL}
-```
-
-Then restart:
-```bash
-docker-compose up -d --build
-```
-
-## Docker Networking Note
-
-**Important**: When running with Docker, you may bot be able to use `localhost` for `ENGINE_URL` if your search engine is running on the host machine. From within a Docker container, `localhost` refers to the container itself, not the host machine.
-
-To connect to a search engine running on your host machine, you have two options:
-
-1. **Use your host machine's IP address**:
-   ```bash
-   # Find your host IP
-   ip route get 1.1.1.1 | awk '{print $7}'
-   # Or on Windows/Mac
-   # Windows: ipconfig
-   # Mac: ifconfig | grep "inet " | grep -v 127.0.0.1
-   
-   # Example result: 192.168.1.100
-   # Set ENGINE_URL to: http://192.168.1.100:8081
-   ```
-2. **Use the Docker network gateway IP**:
-   ```bash
-   # Find your Docker network name
-   docker network ls | grep search-results-summarizer
-   
-   # Inspect the network to find the gateway IP
-   docker network inspect <network_name> | grep Gateway
-   # Example result: "Gateway": "172.19.0.1"
-   # Set ENGINE_URL to: http://172.19.0.1:8081
-   ```
-
-## Commands
-
-```bash
-# Start services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-
-# Rebuild after changes
-docker-compose up -d --build
-```
-
-## Troubleshooting
-
-**Summary not appearing**
-- Check logs: `docker-compose logs`
-- Verify API key in `.env`
-- Verify AI model ID in `.env`
-- Check your OpenRouter quota
-
-**"Proxy Error" message**
-- Check if your search engine is running
-- If using Docker, verify you're not using `localhost` in ENGINE_URL (see Docker networking note above)
-- Verify network connectivity between containers
-- Ensure ENGINE_NAME and ENGINE_URL are correctly set
-
-**Slow summaries**
-- Switch to faster model
-- Reduce `MAX_RESULTS_FOR_SUMMARY`
-
 ## Privacy
 
 - Summaries are generated by sending search results to OpenRouter
 - Your search queries and top results are sent to the AI provider
 - No data is stored by this proxy
 - Consider privacy implications before use
-
-## Adding New Search Engines
-
-To add support for a new search engine:
-
-1. Create a new template file: `templates/summary-template-{engine}.html`
-2. Create a new proxy service: `services/proxy/{engine}-proxy.js`
-3. Add unified endpoints `/search` and `/ac` to your proxy service
-4. Add `ENGINE_NAME` conditions in other scripts
-5. Set `ENGINE_NAME` and `ENGINE_URL` in `docker-compose.yml`
 
 ## License
 
