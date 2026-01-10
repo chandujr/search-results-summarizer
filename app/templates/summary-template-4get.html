@@ -268,7 +268,9 @@
       ellipsis: true,
       completeHTMLDocument: false,
       metadata: false,
-      splitAdjacentBlockquotes: false
+      splitAdjacentBlockquotes: false,
+      noHeaderId: true,
+      prefixHeaderId: false
     });
 
     function showError(message) {
@@ -354,7 +356,24 @@
 
       if (data.content) {
         summaryText += data.content;
-        container.innerHTML = converter.makeHtml(summaryText);
+        let html = converter.makeHtml(summaryText);
+
+        // Additional post-processing to fix any remaining code formatting issues
+        // Handle cases where code blocks might still be incorrectly formatted
+        html = html.replace(/<code>([a-zA-Z0-9+#\-_]+)\n([\s\S]*?)<\/code>(?!<\/pre>)/g,
+          '<pre><code class="$1 language-$1">$2</code></pre>');
+
+        // Handle inline code with language specifiers that should be code blocks
+        html = html.replace(/<code>(java|javascript|python|js|py|html|css|sql|json|xml|yaml|yml|sh|bash|php|ruby|go|rust|c\+\+|cpp|c|csharp|c#|swift|kotlin|scala|typescript|ts)\n([\s\S]*?)<\/code>(?!<\/pre>)/g,
+          '<pre><code class="$1 language-$1">$2</code></pre>');
+
+        // Fix code blocks within list items
+        html = html.replace(/<li>([^<]*)<code>([a-zA-Z0-9+#\-_]+)\n([\s\S]*?)<\/code>([^<]*)<\/li>/g,
+          function(match, textBefore, language, code, textAfter) {
+            return '<li>' + textBefore + '<pre><code class="' + language + ' language-' + language + '">' + code + '</code></pre>' + textAfter + '</li>';
+          });
+
+        container.innerHTML = html;
 
         // Wrap tables in a div for horizontal scrolling on small screens
         const tables = container.querySelectorAll('table');
