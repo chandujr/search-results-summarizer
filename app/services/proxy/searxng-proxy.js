@@ -40,12 +40,7 @@ async function handleSearchRequest(req, res) {
 
     const isManualMode = config.SUMMARY_MODE === "manual";
 
-    const shouldInjectInManualMode = isManualMode && results.length > 0 && !isRateLimited;
-
-    const shouldInjectInAutoMode =
-      !isManualMode && results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize;
-
-    if (shouldInjectInManualMode || shouldInjectInAutoMode) {
+    if (!isRateLimited && summarizeResult.shouldSummarize) {
       const summaryTemplate = getActiveTemplate();
       const enhancedHTML = injectSummary(html, query, results, summaryTemplate, isManualMode);
       return res.status(response.status).send(enhancedHTML);
