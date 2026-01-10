@@ -344,7 +344,12 @@
     // Function to show the summary and hide the button (manual mode)
     function showSummary() {
       setSummaryContainerUI(true);
-      fetchSummary();
+      fetchSummary().finally(() => {
+        // Clear request cache when done (whether success or error)
+        if (window.summaryRequestCache) {
+          delete window.summaryRequestCache[requestKey];
+        }
+      });
     }
 
     function setSummaryContainerUI(visible) {
