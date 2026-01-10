@@ -28,6 +28,29 @@
   </div>
   <div style="padding: 10px 12px 16px">
     <div id="ai-summary-content-wrapper" style="position: relative">
+      <!-- Show Summary button for manual mode -->
+      <div id="show-summary-button-container" style="display: none; text-align: center; padding: 12px">
+        <button
+          id="show-summary-btn"
+          class="button"
+          style="
+            border: 1px solid var(--color-result-link-font);
+            color: var(--color-result-link-font);
+            background: var(--color-result-background);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+          "
+        >
+          Show Summary
+        </button>
+        <div style="padding-top: 8px; font-size: 12px; color: var(--color-result-publishdate-font)">
+          Get an AI-generated summary of these search results
+        </div>
+      </div>
+
       <div
         id="ai-summary-content"
         style="
@@ -226,13 +249,17 @@
     const container = document.getElementById('ai-summary-content');
     const expandBtnContainer = document.getElementById('summary-expand-btn');
     const toggleBtn = document.getElementById('toggle-summary');
+    const showSummaryBtnContainer = document.getElementById('show-summary-button-container');
+    const showSummaryBtn = document.getElementById('show-summary-btn');
     const query = {{QUERY_JSON}};
     const results = {{RESULTS_JSON}};
+    const isManualMode = {{IS_MANUAL_MODE}};
 
     // State
     let isExpanded = false;
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
     let summaryText = '';
+    let summaryRequested = false; // Track if summary has been requested in manual mode
 
     // Request deduplication - prevent multiple simultaneous requests for same query
     const requestKey = `${query}_${results.length}`; // Create unique key based on query and result count
@@ -301,6 +328,22 @@
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
+
+    // Function to show the summary and hide the button (manual mode)
+    function showSummary() {
+      summaryRequested = true;
+      showSummaryBtnContainer.style.display = 'none';
+      container.style.display = 'block';
+
+      // Scroll to the summary container
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Start fetching the summary
+      fetchSummary();
+    }
+
+    // Event listener for the Show Summary button
+    showSummaryBtn.addEventListener('click', showSummary);
 
     // Function to check and update expand button visibility
     function checkExpandButton() {
@@ -438,12 +481,20 @@
       }
     }
 
-    // Start the process
-    fetchSummary().finally(() => {
-      // Clear request cache when done (whether success or error)
-      if (window.summaryRequestCache) {
-        delete window.summaryRequestCache[requestKey];
-      }
-    });
+    // Initialize UI based on mode
+    if (isManualMode) {
+      // In manual mode, show the button and hide the content initially
+      showSummaryBtnContainer.style.display = 'block';
+      container.style.display = 'none';
+      console.log('[Search Results Summary] Manual mode - waiting for user to click "Show Summary"');
+    } else {
+      // In auto mode, fetch the summary immediately
+      fetchSummary().finally(() => {
+        // Clear request cache when done (whether success or error)
+        if (window.summaryRequestCache) {
+          delete window.summaryRequestCache[requestKey];
+        }
+      });
+    }
   })();
 </script>

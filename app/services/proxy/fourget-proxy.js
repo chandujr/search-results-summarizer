@@ -38,9 +38,19 @@ async function handleSearchRequest(req, res) {
     const summarizeResult = shouldSummarize(query, results);
     const isRateLimited = checkRateLimit(query);
 
-    if (results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize) {
+    // Check if we're in manual or auto mode
+    const isManualMode = config.SUMMARY_MODE === "manual";
+
+    // For manual mode, we only need to check if it's a general search with results
+    const shouldInjectInManualMode = isManualMode && results.length > 0 && !isRateLimited;
+
+    // For auto mode, we use the existing logic
+    const shouldInjectInAutoMode =
+      !isManualMode && results.length > 0 && !isRateLimited && summarizeResult.shouldSummarize;
+
+    if (shouldInjectInManualMode || shouldInjectInAutoMode) {
       const summaryTemplate = getActiveTemplate();
-      const enhancedHTML = injectSummary(html, query, results, summaryTemplate);
+      const enhancedHTML = injectSummary(html, query, results, summaryTemplate, isManualMode);
       return res.status(response.status).send(enhancedHTML);
     } else {
       if (summarizeResult.reason) {

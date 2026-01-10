@@ -47,7 +47,7 @@ function extractResults(html) {
   return results;
 }
 
-function injectSummary(html, query, results, summaryTemplate) {
+function injectSummary(html, query, results, summaryTemplate, isManualMode = false) {
   if (!results || results.length === 0) {
     return html;
   }
@@ -56,7 +56,8 @@ function injectSummary(html, query, results, summaryTemplate) {
   let summaryHTML = summaryTemplate
     .replace(/{{MODEL_NAME}}/g, config.OPENROUTER_MODEL.split("/")[1] || "AI")
     .replace(/{{QUERY_JSON}}/g, JSON.stringify(query))
-    .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results));
+    .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results))
+    .replace(/{{IS_MANUAL_MODE}}/g, isManualMode);
 
   // Rewrite URLs in the original HTML
   html = rewriteUrls(html);
