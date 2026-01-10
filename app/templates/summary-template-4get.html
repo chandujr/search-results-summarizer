@@ -12,7 +12,6 @@
       </h3>
     </div>
 
-    <!-- Show Summary button for manual mode -->
     <div id="show-summary-button-container" style="display: none">
       <button
         id="show-summary-btn"
@@ -306,7 +305,6 @@
       }
     }
 
-    // Function to show the summary and hide the button (manual mode)
     function showSummary() {
       setSummaryContainerUI(true);
       fetchSummary().finally(() => {
@@ -330,7 +328,6 @@
       }
     }
 
-    // Event listener for the Show Summary button
     showSummaryBtn.addEventListener('click', showSummary);
 
     // Function to check and update expand button visibility

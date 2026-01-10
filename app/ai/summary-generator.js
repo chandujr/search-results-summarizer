@@ -6,7 +6,6 @@ function shouldSummarize(query, results) {
   const excludeOverrides = config.EXCLUDE_OVERRIDES;
   const isManualMode = config.SUMMARY_MODE === "manual";
 
-  // In manual mode, we only check if there are any results
   if (isManualMode) {
     return {
       shouldSummarize: results.length > 0,
@@ -14,7 +13,6 @@ function shouldSummarize(query, results) {
     };
   }
 
-  // In auto mode, use the original logic
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;
   const resultCount = results.length;

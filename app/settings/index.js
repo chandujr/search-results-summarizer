@@ -2,7 +2,6 @@ const path = require("path");
 const fs = require("fs");
 const yaml = require("js-yaml");
 
-// Define required configuration properties
 const requiredConfigProperties = [
   "ENGINE_NAME",
   "ENGINE_URL",
@@ -19,16 +18,12 @@ const requiredConfigProperties = [
   "EXCLUDE_OVERRIDES",
 ];
 
-// Required environment variables
 const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
-// Try to load configuration from file
 const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.yaml";
 
-// Load .env file if it exists
 const envFilePath = "/config/.env";
 
-// Read and parse .env file
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
     return {};
@@ -50,7 +45,6 @@ const loadEnvFile = (filePath) => {
   return envVars;
 };
 
-// Load environment variables from .env file
 const envVars = loadEnvFile(envFilePath);
 
 // Set environment variables from .env file
