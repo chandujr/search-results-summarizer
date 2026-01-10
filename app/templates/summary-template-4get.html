@@ -1,110 +1,182 @@
-<div
-  id="ai-summary-container"
-  style="background: var(--282828); border: 1px solid var(--504945); padding: 12px; margin: 15px 0; border-radius: 2px"
->
-  <div style="display: flex; align-items: center; justify-content: space-between">
-    <div style="display: flex; align-items: center">
-      <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
+<div id="summary-container" class="summary-container">
+  <div class="summary-header">
+    <div class="summary-title">
+      <svg class="summary-icon" viewBox="0 0 24 24">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
       </svg>
-      <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: normal">
-        Search Results Summary
-      </h3>
+      <h3>Search Results Summary</h3>
     </div>
-
-    <div id="show-summary-button-container" style="display: none">
-      <button
-        id="show-summary-btn"
-        style="
-          background: none;
-          border: 1px solid var(--8ec07c);
-          color: var(--8ec07c);
-          padding: 6px 12px;
-          border-radius: 2px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          line-height: normal;
-        "
-      >
-        Show Summary
-      </button>
+    <div id="show-summary-button-container" class="show-summary-container">
+      <button id="show-summary-btn" class="show-summary-btn">Show Summary</button>
     </div>
   </div>
-  <div
-    id="ai-summary-container-content"
-    style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--8ec07c)"
-  >
-    <div id="ai-summary-content-wrapper" style="position: relative">
-      <div
-        id="ai-summary-content"
-        style="
-          color: var(--a89984);
-          line-height: 22px;
-          font-size: 16px;
-          min-height: 60px;
-          max-height: 200px;
-          overflow: hidden;
-          transition: max-height 0.3s ease;
-        "
-      >
-        <div style="display: flex; align-items: center; gap: 8px; color: var(--928374)">
-          <div
-            class="spinner"
-            style="
-              width: 16px;
-              height: 16px;
-              border: 2px solid var(--504945);
-              border-top-color: var(--8ec07c);
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-            "
-          ></div>
-          <span style="padding-top: 8px">Generating summary...</span>
+  <div id="summary-container-content" class="summary-content-container">
+    <div id="summary-content-wrapper" class="summary-content-wrapper">
+      <div id="summary-content" class="summary-content">
+        <div class="loading-indicator">
+          <div class="spinner"></div>
+          <span>Generating summary...</span>
         </div>
       </div>
-      <div
-        id="summary-fade-overlay"
-        style="
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 40px;
-          background: linear-gradient(to bottom, transparent, var(--282828));
-          pointer-events: none;
-          display: none;
-          z-index: 1;
-        "
-      ></div>
+      <div id="summary-fade-overlay" class="summary-fade-overlay"></div>
     </div>
-    <div id="summary-expand-btn" style="display: none; text-align: center">
-      <button
-        id="toggle-summary"
-        style="
-          width: 100%;
-          background: none;
-          border: 1px solid var(--8ec07c);
-          color: var(--8ec07c);
-          padding: 6px 12px;
-          border-radius: 2px;
-          cursor: pointer;
-          font-size: 14px;
-          line-height: normal;
-        "
-      >
-        Show more
-      </button>
+    <div id="summary-expand-btn" class="summary-expand-btn-container">
+      <button id="toggle-summary" class="toggle-summary-btn">Show more</button>
     </div>
-    <div style="padding-top: 8px; font-size: 12px; color: var(--928374); border-top: 1px solid var(--504945)">
-      Powered by {{MODEL_NAME}}
-    </div>
-    <div style="font-size: 11px; color: var(--928374); line-height: 1.4">
+    <div class="powered-by">Powered by {{MODEL_NAME}}</div>
+    <div class="disclaimer">
       Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
     </div>
   </div>
 </div>
+
 <style>
+  .summary-container {
+    background: var(--282828);
+    border: 1px solid var(--504945);
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 2px;
+  }
+
+  .summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .summary-title {
+    display: flex;
+    align-items: center;
+  }
+
+  .summary-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    fill: var(--8ec07c);
+  }
+
+  .summary-title h3 {
+    margin: 0;
+    color: var(--bdae93);
+    font-size: 16px;
+    font-weight: normal;
+    line-height: normal;
+  }
+
+  .show-summary-container {
+    display: none;
+  }
+
+  .show-summary-btn {
+    background: none;
+    border: 1px solid var(--8ec07c);
+    color: var(--8ec07c);
+    padding: 6px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: normal;
+  }
+
+  .summary-content-container {
+    display: none;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--8ec07c);
+  }
+
+  .summary-content-wrapper {
+    position: relative;
+  }
+
+  .summary-content {
+    color: var(--a89984);
+    line-height: 22px;
+    font-size: 16px;
+    min-height: 60px;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--928374);
+  }
+
+  .loading-indicator span {
+    padding-top: 8px;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--504945);
+    border-top-color: var(--8ec07c);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .summary-fade-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--282828));
+    pointer-events: none;
+    display: none;
+    z-index: 1;
+  }
+
+  .summary-expand-btn-container {
+    display: none;
+    text-align: center;
+  }
+
+  .toggle-summary-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--8ec07c);
+    color: var(--8ec07c);
+    padding: 6px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: normal;
+  }
+
+  .powered-by {
+    padding-top: 8px;
+    font-size: 12px;
+    color: var(--928374);
+    border-top: 1px solid var(--504945);
+  }
+
+  .disclaimer {
+    font-size: 11px;
+    color: var(--928374);
+    line-height: 1.4;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fc92a5;
+  }
+
+  .error-icon {
+    width: 16px;
+    height: 16px;
+    fill: #fc92a5;
+  }
+
   @keyframes spin {
     to {
       transform: rotate(360deg);
@@ -112,7 +184,7 @@
   }
 
   /* Code block styling */
-  #ai-summary-content pre {
+  .summary-content pre {
     background-color: var(--1d2021);
     border: 1px solid var(--504945);
     border-radius: 3px;
@@ -123,7 +195,7 @@
     word-wrap: break-word;
   }
 
-  #ai-summary-content code {
+  .summary-content code {
     background-color: var(--3c3836);
     border-radius: 3px;
     padding: 2px 4px;
@@ -132,14 +204,14 @@
     color: var(--ebdbb2);
   }
 
-  #ai-summary-content pre code {
+  .summary-content pre code {
     background-color: transparent;
     padding: 0;
     font-size: 0.9em;
   }
 
   /* Other markdown elements */
-  #ai-summary-content blockquote {
+  .summary-content blockquote {
     border-left: 3px solid var(--8ec07c);
     margin: 10px 0;
     padding-left: 15px;
@@ -147,26 +219,26 @@
     font-style: italic;
   }
 
-  #ai-summary-content ul,
-  #ai-summary-content ol {
+  .summary-content ul,
+  .summary-content ol {
     margin: 10px 0;
     padding-left: 25px;
   }
 
-  #ai-summary-content li {
+  .summary-content li {
     margin: 5px 0;
   }
 
-  #ai-summary-content p {
+  .summary-content p {
     margin: 10px 0;
   }
 
-  #ai-summary-content a {
+  .summary-content a {
     color: var(--8ec07c);
   }
 
   /* Table styling to fix 4get layout issues */
-  #ai-summary-content table {
+  .summary-content table {
     width: 100%;
     border-collapse: collapse;
     margin: 15px 0;
@@ -174,8 +246,8 @@
     table-layout: auto;
   }
 
-  #ai-summary-content th,
-  #ai-summary-content td {
+  .summary-content th,
+  .summary-content td {
     border: 1px solid var(--504945);
     padding: 8px 12px !important;
     text-align: center;
@@ -186,18 +258,18 @@
     word-wrap: break-word !important;
   }
 
-  #ai-summary-content th {
+  .summary-content th {
     background-color: var(--3c3836);
     color: var(--bdae93);
     line-height: normal;
   }
 
-  #ai-summary-content tr:nth-child(even) {
+  .summary-content tr:nth-child(even) {
     background-color: rgba(56, 52, 54, 0.3);
   }
 
   /* Table wrapper for horizontal scrolling */
-  #ai-summary-content .table-wrapper {
+  .summary-content .table-wrapper {
     overflow-x: auto;
     width: 100%;
     margin: 15px 0;
@@ -206,13 +278,13 @@
 
   /* Override 4get's responsive table styles */
   @media (max-width: 1000px) {
-    #ai-summary-content .table-wrapper table {
+    .summary-content .table-wrapper table {
       min-width: 600px;
       display: table !important;
     }
 
-    #ai-summary-content .table-wrapper table th,
-    #ai-summary-content .table-wrapper table td {
+    .summary-content .table-wrapper table th,
+    .summary-content .table-wrapper table td {
       display: table-cell !important;
       width: auto !important;
     }
@@ -222,7 +294,7 @@
 <script>
   (function() {
     // DOM elements
-    const container = document.getElementById('ai-summary-content');
+    const container = document.getElementById('summary-content');
     const expandBtnContainer = document.getElementById('summary-expand-btn');
     const toggleBtn = document.getElementById('toggle-summary');
     const showSummaryBtnContainer = document.getElementById('show-summary-button-container');
@@ -274,8 +346,8 @@
 
     function showError(message) {
       container.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: #fc92a5;">
-          <svg style="width: 16px; height: 16px; fill: #fc92a5;" viewBox="0 0 24 24">
+        <div class="error-message">
+          <svg class="error-icon" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>${message}</span>
@@ -287,7 +359,6 @@
     function toggleExpand() {
       isExpanded = !isExpanded;
       const fadeOverlay = document.getElementById('summary-fade-overlay');
-      const summaryContainer = document.getElementById('ai-summary-container');
 
       if (isExpanded) {
         container.style.maxHeight = 'none';
@@ -300,8 +371,6 @@
         if (container.scrollHeight > maxHeight) {
           fadeOverlay.style.display = 'block';
         }
-        // Scroll to the summary container to make sure it's visible
-        summaryContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
@@ -316,7 +385,7 @@
     }
 
     function setSummaryContainerUI(visible) {
-      const summaryContainerContent = document.getElementById('ai-summary-container-content');
+      const summaryContainerContent = document.getElementById('summary-container-content');
       if(visible) {
         showSummaryBtnContainer.style.display = 'none';
         container.style.display = 'block';

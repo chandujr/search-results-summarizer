@@ -1,136 +1,187 @@
-<div
-  id="ai-summary-container"
-  class="result result-default"
-  style="
+<div id="summary-container" class="result result-default summary-container">
+  <div class="url_header summary-header">
+    <div class="summary-title">
+      <div class="favicon">
+        <svg class="summary-icon" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+        </svg>
+      </div>
+      <div class="url_wrapper">
+        <span class="url_o1">
+          <span class="url_i1">Search Results Summary</span>
+        </span>
+      </div>
+    </div>
+
+    <div id="show-summary-button-container" class="show-summary-container">
+      <button id="show-summary-btn" class="button show-summary-btn">Show Summary</button>
+    </div>
+  </div>
+  <div id="summary-container-content" class="summary-content-container">
+    <div id="summary-content-wrapper" class="summary-content-wrapper">
+      <div id="summary-content" class="summary-content">
+        <div class="loading-indicator">
+          <div class="spinner"></div>
+          <span>Generating summary...</span>
+        </div>
+      </div>
+      <div id="summary-fade-overlay" class="summary-fade-overlay"></div>
+    </div>
+    <div id="summary-expand-btn" class="summary-expand-btn-container">
+      <button id="toggle-summary" class="button toggle-summary-btn">Show more</button>
+    </div>
+    <div class="powered-by">Powered by {{MODEL_NAME}}</div>
+    <div class="disclaimer">
+      Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+    </div>
+  </div>
+</div>
+
+<style>
+  .summary-container {
     background: var(--color-result-background);
     border: 1px solid var(--color-result-border);
     padding: 0;
     margin: 20px 0.5rem;
     border-radius: 8px;
-  "
->
-  <div
-    class="url_header"
-    style="
-      border-bottom: 1px solid var(--color-result-border);
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    "
-  >
-    <div style="display: flex; align-items: center; gap: 8px">
-      <div class="favicon">
-        <svg style="display: block; width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-        </svg>
-      </div>
-      <div class="url_wrapper">
-        <span class="url_o1" style="padding-bottom: 0">
-          <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal; line-height: normal"
-            >Search Results Summary</span
-          >
-        </span>
-      </div>
-    </div>
+  }
 
-    <div id="show-summary-button-container" style="display: none">
-      <button
-        id="show-summary-btn"
-        class="button"
-        style="
-          border: 1px solid var(--color-result-link-font);
-          color: var(--color-result-link-font);
-          background: var(--color-result-background);
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 500;
-          line-height: normal;
-        "
-      >
-        Show Summary
-      </button>
-    </div>
-  </div>
-  <div id="ai-summary-container-content" style="display: none; padding: 8px 12px">
-    <div id="ai-summary-content-wrapper" style="position: relative">
-      <div
-        id="ai-summary-content"
-        style="
-          color: var(--color-base-font);
-          line-height: 1.5;
-          font-size: 15px;
-          min-height: 60px;
-          max-height: 200px;
-          overflow: hidden;
-          transition: max-height 0.3s ease;
-        "
-      >
-        <div style="display: flex; align-items: center; gap: 8px; color: var(--color-result-publishdate-font)">
-          <div
-            class="spinner"
-            style="
-              width: 16px;
-              height: 16px;
-              border: 2px solid var(--color-result-border);
-              border-top-color: var(--color-result-link-font);
-              border-radius: 50%;
-              animation: spin 1s linear infinite;
-            "
-          ></div>
-          <span style="padding-top: 8px">Generating summary...</span>
-        </div>
-      </div>
-      <div
-        id="summary-fade-overlay"
-        style="
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 40px;
-          background: linear-gradient(to bottom, transparent, var(--color-result-background));
-          pointer-events: none;
-          display: none;
-          z-index: 1;
-        "
-      ></div>
-    </div>
-    <div id="summary-expand-btn" style="display: none; text-align: center">
-      <button
-        id="toggle-summary"
-        class="button"
-        style="
-          border: 1px solid var(--color-result-border);
-          color: var(--color-base-font);
-          background: var(--color-result-background);
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-          width: 100%;
-        "
-      >
-        Show more
-      </button>
-    </div>
-    <div
-      style="
-        padding-top: 8px;
-        font-size: 12px;
-        color: var(--color-result-publishdate-font);
-        border-top: 1px solid var(--color-result-border);
-      "
-    >
-      Powered by {{MODEL_NAME}}
-    </div>
-    <div style="margin-top: 4px; font-size: 11px; color: var(--color-result-publishdate-font); line-height: 1.4">
-      Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
-    </div>
-  </div>
-</div>
-<style>
+  .summary-header {
+    border-bottom: 1px solid var(--color-result-border);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .summary-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .summary-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    fill: var(--color-result-link-font);
+  }
+
+  .url_i1 {
+    color: var(--color-result-url-font);
+    font-weight: normal;
+    line-height: normal;
+  }
+
+  .show-summary-container {
+    display: none;
+  }
+
+  .show-summary-btn {
+    border: 1px solid var(--color-result-link-font);
+    color: var(--color-result-link-font);
+    background: var(--color-result-background);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    line-height: normal;
+  }
+
+  .summary-content-container {
+    display: none;
+    padding: 8px 12px;
+  }
+
+  .summary-content-wrapper {
+    position: relative;
+  }
+
+  .summary-content {
+    color: var(--color-base-font);
+    line-height: 1.5;
+    font-size: 15px;
+    min-height: 60px;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-result-publishdate-font);
+  }
+
+  .loading-indicator span {
+    padding-top: 8px;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-result-border);
+    border-top-color: var(--color-result-link-font);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .summary-fade-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--color-result-background));
+    pointer-events: none;
+    display: none;
+    z-index: 1;
+  }
+
+  .summary-expand-btn-container {
+    display: none;
+    text-align: center;
+  }
+
+  .toggle-summary-btn {
+    border: 1px solid var(--color-result-border);
+    color: var(--color-base-font);
+    background: var(--color-result-background);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .powered-by {
+    padding-top: 8px;
+    font-size: 12px;
+    color: var(--color-result-publishdate-font);
+    border-top: 1px solid var(--color-result-border);
+  }
+
+  .disclaimer {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--color-result-publishdate-font);
+    line-height: 1.4;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ef4444;
+  }
+
+  .error-icon {
+    width: 16px;
+    height: 16px;
+    fill: #ef4444;
+  }
+
   @keyframes spin {
     to {
       transform: rotate(360deg);
@@ -138,7 +189,7 @@
   }
 
   /* Code block styling */
-  #ai-summary-content pre {
+  .summary-content pre {
     background-color: var(--color-result-keyvalue-odd);
     border: 1px solid var(--color-result-border);
     border-radius: 4px;
@@ -149,7 +200,7 @@
     word-wrap: break-word;
   }
 
-  #ai-summary-content code {
+  .summary-content code {
     background-color: var(--color-result-keyvalue-even);
     border-radius: 3px;
     padding: 2px 4px;
@@ -157,14 +208,14 @@
     font-size: 0.9em;
   }
 
-  #ai-summary-content pre code {
+  .summary-content pre code {
     background-color: transparent;
     padding: 0;
     font-size: 0.9em;
   }
 
   /* Other markdown elements */
-  #ai-summary-content blockquote {
+  .summary-content blockquote {
     border-left: 4px solid var(--color-result-link-font);
     margin: 10px 0;
     padding-left: 15px;
@@ -172,40 +223,40 @@
     font-style: italic;
   }
 
-  #ai-summary-content ul,
-  #ai-summary-content ol {
+  .summary-content ul,
+  .summary-content ol {
     margin: 10px 0;
     padding-left: 25px;
   }
 
-  #ai-summary-content li {
+  .summary-content li {
     margin: 5px 0;
   }
 
-  #ai-summary-content p {
+  .summary-content p {
     margin: 10px 0;
   }
 
   /* Link styling */
-  #ai-summary-content a {
+  .summary-content a {
     color: var(--color-result-link-font);
     text-decoration: none;
   }
 
-  #ai-summary-content a:hover {
+  .summary-content a:hover {
     text-decoration: underline;
   }
 
   /* Table styling */
-  #ai-summary-content table {
+  .summary-content table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
     table-layout: auto;
   }
 
-  #ai-summary-content th,
-  #ai-summary-content td {
+  .summary-content th,
+  .summary-content td {
     border: 1px solid var(--color-result-border);
     padding: 8px 12px;
     text-align: center;
@@ -215,18 +266,18 @@
     word-wrap: break-word;
   }
 
-  #ai-summary-content th {
+  .summary-content th {
     background-color: var(--color-result-keyvalue-odd);
     color: var(--color-base-font);
     font-weight: 600;
   }
 
-  #ai-summary-content tr:nth-child(even) {
+  .summary-content tr:nth-child(even) {
     background-color: var(--color-result-keyvalue-even);
   }
 
   /* Table wrapper for horizontal scrolling */
-  #ai-summary-content .table-wrapper {
+  .summary-content .table-wrapper {
     overflow-x: auto;
     margin: 15px 0;
     -webkit-overflow-scrolling: touch; /* For iOS devices */
@@ -237,27 +288,28 @@
 
   /* Responsive table styling for small screens */
   @media (max-width: 1000px) {
-    #ai-summary-content .table-wrapper table {
+    .summary-content .table-wrapper table {
       min-width: 600px !important; /* Ensure table has minimum width for readability */
       display: table !important;
     }
 
-    #ai-summary-content .table-wrapper table th,
-    #ai-summary-content .table-wrapper table td {
+    .summary-content .table-wrapper table th,
+    .summary-content .table-wrapper table td {
       display: table-cell !important;
       width: auto !important;
     }
 
-    #ai-summary-container {
+    .summary-container {
       margin: 10px 0.5rem;
     }
   }
 </style>
+
 <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 <script>
   (function() {
     // DOM elements
-    const container = document.getElementById('ai-summary-content');
+    const container = document.getElementById('summary-content');
     const expandBtnContainer = document.getElementById('summary-expand-btn');
     const toggleBtn = document.getElementById('toggle-summary');
     const showSummaryBtnContainer = document.getElementById('show-summary-button-container');
@@ -309,8 +361,8 @@
 
     function showError(message) {
       container.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; color: #ef4444;">
-          <svg style="width: 16px; height: 16px; fill: #ef4444;" viewBox="0 0 24 24">
+        <div class="error-message">
+          <svg class="error-icon" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>${message}</span>
@@ -334,8 +386,6 @@
         if (container.scrollHeight > maxHeight) {
           fadeOverlay.style.display = 'block';
         }
-        // Scroll to the summary container to make sure it's visible
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
@@ -350,7 +400,7 @@
     }
 
     function setSummaryContainerUI(visible) {
-      const summaryContainerContent = document.getElementById('ai-summary-container-content');
+      const summaryContainerContent = document.getElementById('summary-container-content');
       if(visible) {
         showSummaryBtnContainer.style.display = 'none';
         container.style.display = 'block';
