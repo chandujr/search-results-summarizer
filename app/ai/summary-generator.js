@@ -8,11 +8,16 @@ function shouldSummarize(query, results) {
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;
   const resultCount = results.length;
+  const minKeywordCount = config.MIN_KEYWORD_COUNT;
+  const minResultCount = config.MIN_RESULT_COUNT;
 
-  if (keywordCount < 3 || resultCount < 3) {
+  if (keywordCount < minKeywordCount || resultCount < minResultCount) {
     return {
       shouldSummarize: false,
-      reason: keywordCount < 3 ? `Not enough keywords (${keywordCount}/3)` : `Not enough results (${resultCount}/3)`,
+      reason:
+        keywordCount < minKeywordCount
+          ? `Not enough keywords (${keywordCount}/${minKeywordCount})`
+          : `Not enough results (${resultCount}/${minResultCount})`,
     };
   }
 

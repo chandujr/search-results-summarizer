@@ -34,6 +34,13 @@ RATE_LIMIT_MS: 1000
 # Maximum tokens for AI responses
 MAX_TOKENS: 750
 
+# Summarization thresholds
+# Minimum number of keywords required in a search query to generate a summary
+MIN_KEYWORD_COUNT: 3
+
+# Minimum number of search results required to generate a summary
+MIN_RESULT_COUNT: 3
+
 # Summarization filters
 # Words in search queries that prevent summarization
 EXCLUDE_WORDS:

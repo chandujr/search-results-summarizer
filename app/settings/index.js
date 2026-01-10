@@ -12,6 +12,8 @@ const requiredConfigProperties = [
   "HOST",
   "RATE_LIMIT_MS",
   "MAX_TOKENS",
+  "MIN_KEYWORD_COUNT",
+  "MIN_RESULT_COUNT",
   "EXCLUDE_WORDS",
   "EXCLUDE_OVERRIDES",
 ];
