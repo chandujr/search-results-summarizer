@@ -90,7 +90,6 @@ try {
 }
 
 // Add derived properties
-config.MAX_RESULTS = config.MAX_RESULTS_FOR_SUMMARY;
 config.TEMPLATES_PATH = path.join(__dirname, "../templates");
 config.SEARXNG_TEMPLATE = path.join(__dirname, "../templates", "summary-template-searxng.html");
 config.FOURGET_TEMPLATE = path.join(__dirname, "../templates", "summary-template-4get.html");

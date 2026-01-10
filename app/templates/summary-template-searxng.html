@@ -270,7 +270,6 @@
     let isExpanded = false;
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
     let summaryText = '';
-    let summaryRequested = false; // Track if summary has been requested in manual mode
 
     // Request deduplication - prevent multiple simultaneous requests for same query
     const requestKey = `${query}_${results.length}`; // Create unique key based on query and result count

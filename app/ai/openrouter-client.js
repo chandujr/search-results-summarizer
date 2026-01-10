@@ -99,7 +99,7 @@ async function createSummaryStream(query, results, res) {
   }
 
   try {
-    const topResults = results.slice(0, config.MAX_RESULTS);
+    const topResults = results.slice(0, config.MAX_RESULTS_FOR_SUMMARY);
     const resultsText = topResults
       .map((r, i) => {
         // Strip HTML tags from content to improve AI summarization
