@@ -17,7 +17,7 @@ AI-powered search results summary generator for local search engine instances (l
    docker run -d --name search-results-summarizer \
      -p 3000:3000 \
      -v "./config:/config" \
-     search-results-summarizer:latest
+     ghcr.io/chandujr/search-results-summarizer:latest
    ```
 
 3. Configure the service:
