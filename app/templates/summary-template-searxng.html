@@ -11,46 +11,51 @@
 >
   <div
     class="url_header"
-    style="border-bottom: 1px solid var(--color-result-border); padding: 12px; display: flex; align-items: center"
+    style="
+      border-bottom: 1px solid var(--color-result-border);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    "
   >
-    <div class="favicon">
-      <svg style="display: block; width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-      </svg>
+    <div style="display: flex; align-items: center; gap: 8px">
+      <div class="favicon">
+        <svg style="display: block; width: 16px; height: 16px; fill: var(--color-result-link-font)" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+        </svg>
+      </div>
+      <div class="url_wrapper">
+        <span class="url_o1" style="padding-bottom: 0">
+          <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal; line-height: normal"
+            >Search Results Summary</span
+          >
+        </span>
+      </div>
     </div>
-    <div class="url_wrapper">
-      <span class="url_o1" style="padding-bottom: 0">
-        <span class="url_i1" style="color: var(--color-result-url-font); font-weight: normal; line-height: normal"
-          >Search Results Summary</span
-        >
-      </span>
+
+    <!-- Show Summary button for manual mode -->
+    <div id="show-summary-button-container" style="display: none">
+      <button
+        id="show-summary-btn"
+        class="button"
+        style="
+          border: 1px solid var(--color-result-link-font);
+          color: var(--color-result-link-font);
+          background: var(--color-result-background);
+          padding: 6px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          line-height: normal;
+        "
+      >
+        Show Summary
+      </button>
     </div>
   </div>
-  <div style="padding: 10px 12px 16px">
+  <div id="ai-summary-container-content" style="display: none; padding: 8px 12px">
     <div id="ai-summary-content-wrapper" style="position: relative">
-      <!-- Show Summary button for manual mode -->
-      <div id="show-summary-button-container" style="display: none; text-align: center; padding: 12px">
-        <button
-          id="show-summary-btn"
-          class="button"
-          style="
-            border: 1px solid var(--color-result-link-font);
-            color: var(--color-result-link-font);
-            background: var(--color-result-background);
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-          "
-        >
-          Show Summary
-        </button>
-        <div style="padding-top: 8px; font-size: 12px; color: var(--color-result-publishdate-font)">
-          Get an AI-generated summary of these search results
-        </div>
-      </div>
-
       <div
         id="ai-summary-content"
         style="
@@ -75,7 +80,7 @@
               animation: spin 1s linear infinite;
             "
           ></div>
-          <span>Generating summary...</span>
+          <span style="padding-top: 8px">Generating summary...</span>
         </div>
       </div>
       <div
@@ -111,7 +116,14 @@
         Show more
       </button>
     </div>
-    <div style="padding-top: 12px; font-size: 12px; color: var(--color-result-publishdate-font)">
+    <div
+      style="
+        padding-top: 8px;
+        font-size: 12px;
+        color: var(--color-result-publishdate-font);
+        border-top: 1px solid var(--color-result-border);
+      "
+    >
       Powered by {{MODEL_NAME}}
     </div>
     <div style="margin-top: 4px; font-size: 11px; color: var(--color-result-publishdate-font); line-height: 1.4">
@@ -331,15 +343,21 @@
 
     // Function to show the summary and hide the button (manual mode)
     function showSummary() {
-      summaryRequested = true;
-      showSummaryBtnContainer.style.display = 'none';
-      container.style.display = 'block';
-
-      // Scroll to the summary container
-      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      // Start fetching the summary
+      setSummaryContainerUI(true);
       fetchSummary();
+    }
+
+    function setSummaryContainerUI(visible) {
+      const summaryContainerContent = document.getElementById('ai-summary-container-content');
+      if(visible) {
+        showSummaryBtnContainer.style.display = 'none';
+        container.style.display = 'block';
+        summaryContainerContent.style.display = 'block';
+      } else {
+        showSummaryBtnContainer.style.display = 'block';
+        container.style.display = 'none';
+        summaryContainerContent.style.display = 'none';
+      }
     }
 
     // Event listener for the Show Summary button
@@ -483,11 +501,9 @@
 
     // Initialize UI based on mode
     if (isManualMode) {
-      // In manual mode, show the button and hide the content initially
-      showSummaryBtnContainer.style.display = 'block';
-      container.style.display = 'none';
-      console.log('[Search Results Summary] Manual mode - waiting for user to click "Show Summary"');
+      setSummaryContainerUI(false);
     } else {
+      setSummaryContainerUI(true);
       // In auto mode, fetch the summary immediately
       fetchSummary().finally(() => {
         // Clear request cache when done (whether success or error)

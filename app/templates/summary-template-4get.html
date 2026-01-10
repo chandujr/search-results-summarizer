@@ -1,108 +1,108 @@
 <div
   id="ai-summary-container"
-  style="
-    background: var(--282828);
-    border: 1px solid var(--504945);
-    border-bottom: 2px solid var(--8ec07c);
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 2px;
-  "
+  style="background: var(--282828); border: 1px solid var(--504945); padding: 12px; margin: 15px 0; border-radius: 2px"
 >
-  <div style="display: flex; align-items: center; margin-bottom: 12px">
-    <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-    </svg>
-    <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: normal">
-      Search Results Summary
-    </h3>
-  </div>
-  <div id="ai-summary-content-wrapper" style="position: relative">
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center">
+      <svg style="width: 20px; height: 20px; margin-right: 10px; fill: var(--8ec07c)" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+      </svg>
+      <h3 style="margin: 0; color: var(--bdae93); font-size: 16px; font-weight: normal; line-height: normal">
+        Search Results Summary
+      </h3>
+    </div>
+
     <!-- Show Summary button for manual mode -->
-    <div id="show-summary-button-container" style="display: none; text-align: center; padding: 12px">
+    <div id="show-summary-button-container" style="display: none">
       <button
         id="show-summary-btn"
+        style="
+          background: none;
+          border: 1px solid var(--8ec07c);
+          color: var(--8ec07c);
+          padding: 6px 12px;
+          border-radius: 2px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: normal;
+        "
+      >
+        Show Summary
+      </button>
+    </div>
+  </div>
+  <div
+    id="ai-summary-container-content"
+    style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--8ec07c)"
+  >
+    <div id="ai-summary-content-wrapper" style="position: relative">
+      <div
+        id="ai-summary-content"
+        style="
+          color: var(--a89984);
+          line-height: 22px;
+          font-size: 16px;
+          min-height: 60px;
+          max-height: 200px;
+          overflow: hidden;
+          transition: max-height 0.3s ease;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--928374)">
+          <div
+            class="spinner"
+            style="
+              width: 16px;
+              height: 16px;
+              border: 2px solid var(--504945);
+              border-top-color: var(--8ec07c);
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            "
+          ></div>
+          <span style="padding-top: 8px">Generating summary...</span>
+        </div>
+      </div>
+      <div
+        id="summary-fade-overlay"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 40px;
+          background: linear-gradient(to bottom, transparent, var(--282828));
+          pointer-events: none;
+          display: none;
+          z-index: 1;
+        "
+      ></div>
+    </div>
+    <div id="summary-expand-btn" style="display: none; text-align: center">
+      <button
+        id="toggle-summary"
         style="
           width: 100%;
           background: none;
           border: 1px solid var(--8ec07c);
           color: var(--8ec07c);
-          padding: 8px 16px;
+          padding: 6px 12px;
           border-radius: 2px;
           cursor: pointer;
-          font-size: 15px;
-          font-weight: 500;
-          margin-bottom: 8px;
+          font-size: 14px;
+          line-height: normal;
         "
       >
-        Show Summary
+        Show more
       </button>
-      <div style="font-size: 12px; color: var(--928374)">Get an AI-generated summary of these search results</div>
     </div>
-
-    <div
-      id="ai-summary-content"
-      style="
-        color: var(--a89984);
-        line-height: 22px;
-        font-size: 16px;
-        min-height: 60px;
-        max-height: 200px;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      "
-    >
-      <div style="display: flex; align-items: center; gap: 8px; color: var(--928374)">
-        <div
-          class="spinner"
-          style="
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--504945);
-            border-top-color: var(--8ec07c);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          "
-        ></div>
-        <span>Generating summary...</span>
-      </div>
+    <div style="padding-top: 8px; font-size: 12px; color: var(--928374); border-top: 1px solid var(--504945)">
+      Powered by {{MODEL_NAME}}
     </div>
-    <div
-      id="summary-fade-overlay"
-      style="
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: linear-gradient(to bottom, transparent, var(--282828));
-        pointer-events: none;
-        display: none;
-        z-index: 1;
-      "
-    ></div>
-  </div>
-  <div id="summary-expand-btn" style="display: none; text-align: center">
-    <button
-      id="toggle-summary"
-      style="
-        width: 100%;
-        background: none;
-        border: 1px solid var(--8ec07c);
-        color: var(--8ec07c);
-        padding: 6px 12px;
-        border-radius: 2px;
-        cursor: pointer;
-        font-size: 14px;
-        line-height: normal;
-      "
-    >
-      Show more
-    </button>
-  </div>
-  <div style="padding-top: 12px; font-size: 12px; color: var(--928374)">Powered by {{MODEL_NAME}}</div>
-  <div style="font-size: 11px; color: var(--928374); line-height: 1.4">
-    Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+    <div style="font-size: 11px; color: var(--928374); line-height: 1.4">
+      Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
+    </div>
   </div>
 </div>
 <style>
@@ -236,7 +236,6 @@
     let isExpanded = false;
     const maxHeight = 200; // Maximum height in pixels before showing "Show more"
     let summaryText = '';
-    let summaryRequested = false; // Track if summary has been requested in manual mode
 
     // Request deduplication - prevent multiple simultaneous requests for same query
     const requestKey = `${query}_${results.length}`; // Create unique key based on query and result count
@@ -307,15 +306,21 @@
 
     // Function to show the summary and hide the button (manual mode)
     function showSummary() {
-      summaryRequested = true;
-      showSummaryBtnContainer.style.display = 'none';
-      container.style.display = 'block';
-
-      // Scroll to the summary container
-      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      // Start fetching the summary
+      setSummaryContainerUI(true);
       fetchSummary();
+    }
+
+    function setSummaryContainerUI(visible) {
+      const summaryContainerContent = document.getElementById('ai-summary-container-content');
+      if(visible) {
+        showSummaryBtnContainer.style.display = 'none';
+        container.style.display = 'block';
+        summaryContainerContent.style.display = 'block';
+      } else {
+        showSummaryBtnContainer.style.display = 'block';
+        container.style.display = 'none';
+        summaryContainerContent.style.display = 'none';
+      }
     }
 
     // Event listener for the Show Summary button
@@ -441,11 +446,9 @@
 
     // Initialize UI based on mode
     if (isManualMode) {
-      // In manual mode, show the button and hide the content initially
-      showSummaryBtnContainer.style.display = 'block';
-      container.style.display = 'none';
-      console.log('[Search Results Summary] Manual mode - waiting for user to click "Show Summary"');
+      setSummaryContainerUI(false);
     } else {
+      setSummaryContainerUI(true);
       // In auto mode, fetch the summary immediately
       fetchSummary().finally(() => {
         // Clear request cache when done (whether success or error)
