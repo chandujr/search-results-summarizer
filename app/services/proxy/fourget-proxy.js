@@ -131,8 +131,11 @@ function registerRoutes(app) {
   // Unified endpoints (must be registered before catch-all)
   app.get("/search", (req, res) => {
     // Modify URL to 4get's endpoint and query parameter
-    const query = req.query.q;
+    const query = req.query.q || req.query.s;
     delete req.query.q;
+    delete req.query.s;
+
+    // Set the query parameter that 4get expects
     req.query.s = query;
     req.url = "/web?" + new URLSearchParams(req.query).toString();
     return handleProxyRequest(req, res, handleSearchRequest);

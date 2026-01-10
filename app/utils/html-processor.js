@@ -4,8 +4,8 @@ const config = require("../settings");
 // Rewrite URLs in HTML to point to our proxy instead of the original search engine
 function rewriteUrls(html) {
   if (config.ENGINE_NAME === "4get") {
-    html = html.replace(/action=["']\/web["']/gi, 'action="/web"');
-    html = html.replace(/href=["']\/web\?s=/gi, 'href="/web?s=');
+    html = html.replace(/action=["']\/web["']/gi, 'action="/search"');
+    html = html.replace(/href=["']\/web\?s=/gi, 'href="/search?s=');
     html = html.replace(/src=["']\/proxy\?i=/gi, 'src="/proxy?i=');
   } else if (config.ENGINE_NAME === "searxng") {
     html = html.replace(/action=["']\/search["']/gi, 'action="/search"');
