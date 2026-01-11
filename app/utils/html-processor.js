@@ -1,4 +1,5 @@
 const cheerio = require("cheerio");
+const DOMPurify = require("isomorphic-dompurify");
 const config = require("../settings");
 
 // Rewrite URLs in HTML to point to our proxy instead of the original search engine
@@ -52,10 +53,20 @@ function injectSummary(html, query, results, summaryTemplate, isManualMode = fal
     return html;
   }
 
+  // Sanitize and escape the query for XSS protection
+  const sanitizedQuery = DOMPurify.sanitize(query);
+  const escapedQuery = sanitizedQuery
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
+
   // Replace placeholders in the template with actual values
-  let summaryHTML = summaryTemplate
-    .replace(/{{MODEL_NAME}}/g, config.OPENROUTER_MODEL.split("/")[1] || "AI")
-    .replace(/{{QUERY_JSON}}/g, JSON.stringify(query))
+  const summaryHTML = summaryTemplate
+    .replace(/{{MODEL_NAME}}/g, DOMPurify.sanitize(config.OPENROUTER_MODEL.split("/")[1] || "AI"))
+    .replace(/{{QUERY_JSON}}/g, JSON.stringify(escapedQuery))
     .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results))
     .replace(/{{IS_MANUAL_MODE}}/g, isManualMode);
 

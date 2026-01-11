@@ -1,6 +1,6 @@
 {
   "name": "search-results-summarizer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "AI-powered summary proxy for search engines with streaming support",
   "main": "server.js",
   "scripts": {
@@ -12,7 +12,8 @@
     "cheerio": "^1.1.2",
     "openai": "^4.67.3",
     "express-rate-limit": "^8.2.1",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "isomorphic-dompurify": "^2.6.0"
   },
   "engines": {
     "node": ">=18.0.0"

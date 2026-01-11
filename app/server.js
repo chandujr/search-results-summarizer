@@ -35,7 +35,10 @@ app.use("/api/", (req, res, next) => {
 
 app.post("/api/summary", (req, res) => {
   const { query, results } = req.body;
-  createSummaryStream(query, results, res, req);
+  // Sanitize query to prevent XSS when sent to AI and later rendered
+  const DOMPurify = require("isomorphic-dompurify");
+  const sanitizedQuery = DOMPurify.sanitize(query);
+  createSummaryStream(sanitizedQuery, results, res, req);
 });
 
 if (config.ENGINE_NAME === "4get") {
