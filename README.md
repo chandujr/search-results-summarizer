@@ -6,6 +6,8 @@ AI-powered search results summary generator for local search engine instances (l
 
 ### Option 1: Using the Docker Image
 
+#### Method A: With Docker Run
+
 1. Create a configuration directory:
    ```bash
    mkdir -p ./search-results-summarizer/config
@@ -31,6 +33,42 @@ AI-powered search results summary generator for local search engine instances (l
 4. Restart the container to apply changes:
    ```bash
    docker restart search-results-summarizer
+   ```
+
+#### Method B: With Docker Compose
+
+1. Create a project directory and docker-compose.yml:
+   ```bash
+   mkdir -p ./search-results-summarizer/config
+   cd ./search-results-summarizer
+   cat > docker-compose.yml << EOF
+   services:
+     search-results-summarizer:
+       image: ghcr.io/chandujr/search-results-summarizer:latest
+       container_name: search-results-summarizer
+       ports:
+         - "3000:3000"
+       volumes:
+         - ./config:/config
+       restart: unless-stopped
+   EOF
+   ```
+
+2. Start the service:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Configure the service:
+   ```bash
+   # Edit the configuration files
+   nano ./config/config.yaml
+   nano ./config/.env
+   ```
+
+4. Restart the service to apply changes:
+   ```bash
+   docker-compose restart
    ```
 
 ### Option 2: Using the Repository
