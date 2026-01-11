@@ -82,9 +82,10 @@ async function handleSettings(req, res) {
           if (key.toLowerCase() === "set-cookie") {
             (Array.isArray(value) ? value : [value]).forEach((cookie) => cookie && res.append(key, cookie));
           } else if (key.toLowerCase() === "location" && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
+            const externalUrl = config.getExternalUrl(req);
             const location = value.toString().startsWith("/")
-              ? `http://localhost:3000${value}`
-              : value.toString().replace("localhost:8081", "localhost:3000");
+              ? `${externalUrl}${value}`
+              : value.toString().replace(/localhost:\d+/, externalUrl);
             res.setHeader(key, location);
           } else {
             res.setHeader(key, value);

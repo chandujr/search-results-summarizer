@@ -11,11 +11,11 @@ const httpsAgent = new https.Agent({
 });
 
 // Initialize OpenRouter client with IPv4 agent
+// Note: HTTP-Referer will be dynamically set based on the request in createSummaryStream
 const openrouter = new OpenAI({
   apiKey: config.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
-    "HTTP-Referer": "http://localhost:3000",
     "X-Title": "Search Results Summarizer",
   },
   httpAgent: httpsAgent,
@@ -88,7 +88,7 @@ function handleStreamError(res, error) {
   }
 }
 
-async function createSummaryStream(query, results, res) {
+async function createSummaryStream(query, results, res, req) {
   if (!config.OPENROUTER_API_KEY) {
     log("API key missing");
     return res.status(400).json({ error: "API key missing" });
@@ -99,6 +99,9 @@ async function createSummaryStream(query, results, res) {
   }
 
   try {
+    // Set the HTTP-Referer header dynamically based on the request
+    const refererUrl = config.getExternalUrl(req);
+    log(`Using referer URL: ${refererUrl}`);
     const topResults = results.slice(0, config.MAX_RESULTS_FOR_SUMMARY);
     const resultsText = topResults
       .map((r, i) => {
@@ -123,6 +126,9 @@ async function createSummaryStream(query, results, res) {
       messages: prompt,
       max_tokens: config.MAX_TOKENS,
       stream: true,
+      headers: {
+        "HTTP-Referer": refererUrl,
+      },
     });
 
     await handleStreamResponse(stream, res);

@@ -35,7 +35,7 @@ app.use("/api/", (req, res, next) => {
 
 app.post("/api/summary", (req, res) => {
   const { query, results } = req.body;
-  createSummaryStream(query, results, res);
+  createSummaryStream(query, results, res, req);
 });
 
 if (config.ENGINE_NAME === "4get") {

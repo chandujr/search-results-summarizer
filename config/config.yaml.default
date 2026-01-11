@@ -19,14 +19,6 @@ OPENROUTER_MODEL: mistralai/devstral-2512:free
 # Number of search results to summarize
 MAX_RESULTS_FOR_SUMMARY: 7
 
-# Server configuration
-# Port for the application to listen on
-PORT: 3000
-
-# Host address for the application
-# Use 0.0.0.0 to listen on all network interfaces
-HOST: 0.0.0.0
-
 # Performance settings
 # Rate limit in milliseconds between requests (to avoid spam)
 RATE_LIMIT_MS: 1000

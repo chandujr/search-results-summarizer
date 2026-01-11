@@ -8,8 +8,6 @@ const requiredConfigProperties = [
   "OPENROUTER_MODEL",
   "MAX_RESULTS_FOR_SUMMARY",
   "SUMMARY_MODE",
-  "PORT",
-  "HOST",
   "RATE_LIMIT_MS",
   "MAX_TOKENS",
   "MIN_KEYWORD_COUNT",
@@ -90,9 +88,23 @@ try {
 }
 
 // Add derived properties
+config.PORT = "3000";
+config.HOST = "0.0.0.0";
 config.TEMPLATES_PATH = path.join(__dirname, "../templates");
 config.SEARXNG_TEMPLATE = path.join(__dirname, "../templates", "summary-template-searxng.html");
 config.FOURGET_TEMPLATE = path.join(__dirname, "../templates", "summary-template-4get.html");
+
+// Function to get the external URL based on request
+config.getExternalUrl = (req) => {
+  // Check if we're behind a proxy and use the forwarded host if available
+  const host = req.get("X-Forwarded-Host") || req.get("Host") || "localhost";
+  const protocol = req.get("X-Forwarded-Proto") || req.protocol;
+
+  // Extract just the host:port part without any path
+  const hostPort = host.split("/")[0];
+
+  return `${protocol}://${hostPort}`;
+};
 
 // Export the final configuration
 module.exports = config;
