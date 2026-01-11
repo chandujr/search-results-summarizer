@@ -69,7 +69,8 @@ AI-powered search results summary generator for local search engine instances (l
 2. In `config/config.yaml`, configure:
    - `ENGINE_NAME`: "searxng" or "4get"
    - `ENGINE_URL`: URL of your search engine instance (see networking note below)
-   - `OPENROUTER_MODEL`: AI model to use for summarization (e.g., "mistralai/devstral-2512:free")
+   - `OPENROUTER_MODEL`: AI model ID to use for summarization (e.g., "mistralai/devstral-2512:free")
+      - Please try different models to see which one suits your searching style
 
 ### Optional Settings
 
