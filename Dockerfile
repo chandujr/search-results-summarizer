@@ -12,8 +12,9 @@ COPY ./app/services ./services
 COPY ./app/utils ./utils
 COPY ./app/ai ./ai
 COPY ./app/templates ./templates
-COPY ./config/config.yaml.default /config/config.yaml.default
-COPY ./config/.env.default /config/.env.default
+RUN mkdir -p /app/defaults
+COPY ./config/config.yaml.default /app/defaults/config.yaml.default
+COPY ./config/.env.default /app/defaults/.env.default
 COPY ./scripts/start.sh /scripts/
 RUN chmod +x /scripts/start.sh
 RUN mkdir -p /config

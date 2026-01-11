@@ -2,9 +2,9 @@
 
 CONFIG_DIR="/config"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
-DEFAULT_CONFIG_FILE="${CONFIG_DIR}/config.yaml.default"
+DEFAULT_CONFIG_FILE="/app/defaults/config.yaml.default"
 ENV_FILE="${CONFIG_DIR}/.env"
-DEFAULT_ENV_FILE="${CONFIG_DIR}/.env.default"
+DEFAULT_ENV_FILE="/app/defaults/.env.default"
 
 mkdir -p "$CONFIG_DIR"
 
