@@ -11,7 +11,6 @@ const httpsAgent = new https.Agent({
 });
 
 // Initialize OpenRouter client with IPv4 agent
-// Note: HTTP-Referer will be dynamically set based on the request in createSummaryStream
 const openrouter = new OpenAI({
   apiKey: config.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",

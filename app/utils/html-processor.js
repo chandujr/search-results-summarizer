@@ -53,21 +53,18 @@ function injectSummary(html, query, results, summaryTemplate, isManualMode = fal
     return html;
   }
 
-  // Sanitize and escape the query for XSS protection
   const sanitizedQuery = DOMPurify.sanitize(query);
-  const escapedQuery = sanitizedQuery
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
+  const sanitizedResults = results.map((result) => ({
+    title: DOMPurify.sanitize(result.title || ""),
+    url: result.url,
+    content: DOMPurify.sanitize(result.content || ""),
+  }));
 
   // Replace placeholders in the template with actual values
   const summaryHTML = summaryTemplate
-    .replace(/{{MODEL_NAME}}/g, DOMPurify.sanitize(config.OPENROUTER_MODEL.split("/")[1] || "AI"))
-    .replace(/{{QUERY_JSON}}/g, JSON.stringify(escapedQuery))
-    .replace(/{{RESULTS_JSON}}/g, JSON.stringify(results))
+    .replace(/{{MODEL_NAME}}/g, config.OPENROUTER_MODEL.split("/")[1] || "AI")
+    .replace(/{{QUERY_JSON}}/g, JSON.stringify(sanitizedQuery))
+    .replace(/{{RESULTS_JSON}}/g, JSON.stringify(sanitizedResults))
     .replace(/{{IS_MANUAL_MODE}}/g, isManualMode);
 
   // Rewrite URLs in the original HTML
