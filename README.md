@@ -2,7 +2,7 @@
 
 AI-powered search results summary generator for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation.
 
-[output02a.webm](https://github.com/user-attachments/assets/02e7126b-b892-4eac-8322-5993599eb627)
+[demo.webm](https://github.com/user-attachments/assets/542970fd-8119-49c4-adb1-ba69facced5b)
 
 
 ## Installation
