@@ -169,4 +169,4 @@ For Brave Browser:
 
 ## License
 
-AGPL
+AGPL-3.0

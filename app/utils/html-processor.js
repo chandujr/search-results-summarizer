@@ -1,6 +1,7 @@
 const cheerio = require("cheerio");
 const DOMPurify = require("isomorphic-dompurify");
 const config = require("../settings");
+const logger = require("../utils/logger");
 
 // Rewrite URLs in HTML to point to our proxy instead of the original search engine
 function rewriteUrls(html) {
@@ -59,6 +60,8 @@ function injectSummary(html, query, results, summaryTemplate, isManualMode = fal
     url: result.url,
     content: DOMPurify.sanitize(result.content || ""),
   }));
+  // logger.log("Sanitized Query: " + JSON.stringify(sanitizedQuery));
+  // logger.log("Sanitized Results: " + JSON.stringify(sanitizedResults));
 
   // Replace placeholders in the template with actual values
   const summaryHTML = summaryTemplate

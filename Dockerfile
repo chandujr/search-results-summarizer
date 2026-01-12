@@ -1,6 +1,8 @@
 FROM node:20-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/chandujr/search-results-summarizer
+LABEL org.opencontainers.image.description="AI-powered search results summary generator for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation."
+LABEL org.opencontainers.image.licenses=AGPL-3.0
 
 WORKDIR /app
 

@@ -4,6 +4,7 @@ const config = require("./settings");
 const { log } = require("./utils/logger");
 const { loadTemplates } = require("./utils/template-loader");
 const { createSummaryStream } = require("./ai/openrouter-client");
+const DOMPurify = require("isomorphic-dompurify");
 
 const { registerRoutes: registerSearxngRoutes } = require("./services/proxy/searxng-proxy");
 const { registerRoutes: registerFourgetRoutes } = require("./services/proxy/fourget-proxy");
@@ -35,8 +36,6 @@ app.use("/api/", (req, res, next) => {
 
 app.post("/api/summary", (req, res) => {
   const { query, results } = req.body;
-  // Sanitize query to prevent XSS when sent to AI and later rendered
-  const DOMPurify = require("isomorphic-dompurify");
   const sanitizedQuery = DOMPurify.sanitize(query);
   createSummaryStream(sanitizedQuery, results, res, req);
 });
