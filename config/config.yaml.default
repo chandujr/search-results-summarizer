@@ -12,7 +12,7 @@ ENGINE_URL: http://192.168.1.100:8888
 # AI model configuration
 # AI model to use for summarization
 # Find available models at: https://openrouter.ai/models
-OPENROUTER_MODEL: mistralai/devstral-2512:free
+OPENROUTER_MODEL: mistralai/mistral-small-3.1-24b-instruct:free
 
 # Feature settings
 
