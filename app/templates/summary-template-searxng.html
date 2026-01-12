@@ -387,6 +387,7 @@
         if (container.scrollHeight > maxHeight) {
           fadeOverlay.style.display = 'block';
         }
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
