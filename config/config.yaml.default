@@ -1,3 +1,5 @@
+# NOTE: These values can be overwritten using environment variables
+
 # Search engine configuration
 # Options: "searxng" or "4get"
 ENGINE_NAME: searxng

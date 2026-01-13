@@ -70,7 +70,7 @@ try {
   }
 
   // Check if all required properties are present
-  const missingProperties = requiredConfigProperties.filter((prop) => !(prop in fileConfig));
+  const missingProperties = requiredConfigProperties.filter((prop) => !(prop in fileConfig) && !process.env[prop]);
   if (missingProperties.length > 0) {
     throw new Error(`Missing required configuration properties: ${missingProperties.join(", ")}`);
   }
@@ -83,6 +83,25 @@ try {
 
   config = fileConfig;
   config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+
+  // Override config properties with environment variables if they exist
+  requiredConfigProperties.forEach((prop) => {
+    if (process.env[prop]) {
+      config[prop] = process.env[prop];
+
+      if (
+        prop === "RATE_LIMIT_MS" ||
+        prop === "MAX_TOKENS" ||
+        prop === "MAX_RESULTS_FOR_SUMMARY" ||
+        prop === "MIN_KEYWORD_COUNT" ||
+        prop === "MIN_RESULT_COUNT"
+      ) {
+        config[prop] = parseInt(config[prop], 10);
+      } else if (prop === "MODIFY_CSP_HEADERS") {
+        config[prop] = config[prop] === "true" || config[prop] === "1";
+      }
+    }
+  });
   console.log(`Configuration loaded from ${configFilePath}`);
   console.log(`Environment variables loaded`);
 } catch (error) {
