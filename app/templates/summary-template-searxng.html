@@ -477,8 +477,6 @@
 
     toggleBtn.addEventListener('click', toggleExpand);
 
-    console.log('[Search Results Summary] Starting fetch stream');
-
     // Function to handle streaming response
     async function processStream(response) {
       const reader = response.body.getReader();
@@ -526,6 +524,7 @@
 
     // Main function to fetch and process the summary
     async function fetchSummary() {
+      console.log('[Search Results Summary] Starting fetch stream');
       try {
         const response = await fetch(window.location.origin + '/api/summary', {
           method: 'POST',
