@@ -1,6 +1,6 @@
 # Search Results Summarizer
 
-AI-powered search results summary generator for local search engine instances (like SearXNG or 4get) using OpenRouter. Works transparently with your existing search engine installation.
+AI-powered search results summary generator that works transparently with your existing search engine instances (like SearXNG or 4get) using OpenRouter.
 
 https://github.com/user-attachments/assets/7cf471f5-4837-4d29-aada-657bcd66db57
 
@@ -110,6 +110,7 @@ https://github.com/user-attachments/assets/7cf471f5-4837-4d29-aada-657bcd66db57
 2. In `config/config.yaml`, configure:
    - `ENGINE_NAME`: "searxng" or "4get"
    - `ENGINE_URL`: URL of your search engine instance (see networking note below)
+      - Works with both locally installed and public instances
    - `OPENROUTER_MODEL`: AI model ID to use for summarization (e.g., "mistralai/devstral-2512:free")
       - Please try different models to see which one suits your searching style
 
@@ -118,6 +119,7 @@ https://github.com/user-attachments/assets/7cf471f5-4837-4d29-aada-657bcd66db57
 - `SUMMARY_MODE`: "auto" (automatic) or "manual" (button-triggered)
 - `MAX_RESULTS_FOR_SUMMARY`: Number of results to summarize (default: 7)
 - `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
+- `MODIFY_CSP_HEADERS`: Set to `true` if using public search engine instances that block external scripts (default: `false`)
 
 ## Docker Networking Note
 

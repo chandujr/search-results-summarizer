@@ -39,6 +39,12 @@ MIN_KEYWORD_COUNT: 3
 # Minimum number of search results required to generate a summary
 MIN_RESULT_COUNT: 3
 
+# Content Security Policy modifications
+# When enabled, modifies CSP headers to allow summary functionality with external instances
+# Only enable if using public instances that block summary functionality
+# Options: true (modify CSP), false (forward original CSP as-is)
+MODIFY_CSP_HEADERS: false
+
 # Summarization filters (these are ignored when SUMMARY_MODE is set to "manual")
 # Words in search queries that prevent summarization
 EXCLUDE_WORDS:
