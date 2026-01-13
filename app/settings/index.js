@@ -20,7 +20,6 @@ const requiredConfigProperties = [
 const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
 const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.yaml";
-
 const envFilePath = "/config/.env";
 
 const loadEnvFile = (filePath) => {
@@ -46,10 +45,13 @@ const loadEnvFile = (filePath) => {
 
 const envVars = loadEnvFile(envFilePath);
 
-// Set environment variables from .env file
-Object.keys(envVars).forEach((key) => {
-  process.env[key] = envVars[key];
-});
+if (Object.keys(envVars).length > 0) {
+  Object.keys(envVars).forEach((key) => {
+    if (!process.env[key]) {
+      process.env[key] = envVars[key];
+    }
+  });
+}
 
 let config;
 
@@ -82,7 +84,7 @@ try {
   config = fileConfig;
   config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
   console.log(`Configuration loaded from ${configFilePath}`);
-  console.log(`Environment variables loaded from ${envFilePath}`);
+  console.log(`Environment variables loaded`);
 } catch (error) {
   console.error(`Error loading configuration: ${error.message}`);
   process.exit(1);
