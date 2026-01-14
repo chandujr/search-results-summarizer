@@ -40,6 +40,11 @@ app.post("/api/summary", (req, res) => {
   createSummaryStream(sanitizedQuery, results, res, req);
 });
 
+// Health check endpoint for cloud hosting platforms
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 if (config.ENGINE_NAME === "4get") {
   registerFourgetRoutes(app);
 } else {
