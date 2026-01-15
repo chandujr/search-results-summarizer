@@ -112,8 +112,8 @@ try {
 }
 
 // Add derived properties
-config.PORT = "3000";
-config.HOST = "0.0.0.0";
+config.PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+config.HOST = process.env.HOST || "0.0.0.0";
 config.TEMPLATES_PATH = path.join(__dirname, "../templates");
 config.SEARXNG_TEMPLATE = path.join(__dirname, "../templates", "summary-template-searxng.html");
 config.FOURGET_TEMPLATE = path.join(__dirname, "../templates", "summary-template-4get.html");
