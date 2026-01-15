@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { makeRequest, forwardHeaders, handleProxyRequest } = require("./base-proxy");
+const { makeRequest, forwardHeaders, handleProxyRequest, handleSettingsRequest } = require("./base-proxy");
 const { checkRateLimit } = require("../../utils/rate-limiter");
 const { extractResults, injectSummary } = require("../../utils/html-processor");
 const { isGeneralSearch, extractQuery, shouldSummarize } = require("../../ai/summary-generator");
@@ -26,7 +26,7 @@ async function handleSearchRequest(req, res) {
   const isGenSearch = isGeneralSearch(req);
 
   const response = await makeRequest(req);
-  forwardHeaders(response, res);
+  forwardHeaders(response, res, req);
 
   if (isSearchRequest && isGenSearch && response.headers["content-type"]?.includes("text/html")) {
     log(`Processing HTML response for general search summary injection`);
@@ -55,16 +55,18 @@ async function handleSearchRequest(req, res) {
   }
 }
 
-async function handleOtherRequests(req, res) {
-  const response = await makeRequest(req);
-  forwardHeaders(response, res);
-  res.status(response.status).send(response.data);
+async function handlePreferences(req, res) {
+  return handleSettingsRequest(req, res, "preferences");
 }
 
 function registerRoutes(app) {
   // Unified endpoints (must be registered before catch-all)
   app.get("/search", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
   app.get("/ac", (req, res) => handleProxyRequest(req, res, handleAutocomplete));
+
+  // Handle preferences
+  app.get("/preferences", (req, res) => handleProxyRequest(req, res, handlePreferences));
+  app.post("/preferences", (req, res) => handleProxyRequest(req, res, handlePreferences));
 
   // Handle all other requests
   app.all("*", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
@@ -73,6 +75,6 @@ function registerRoutes(app) {
 module.exports = {
   registerRoutes,
   handleSearchRequest,
-  handleOtherRequests,
   handleAutocomplete,
+  handlePreferences,
 };

@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { makeRequest, forwardHeaders, handleProxyRequest } = require("./base-proxy");
+const { makeRequest, forwardHeaders, handleProxyRequest, handleSettingsRequest } = require("./base-proxy");
 const { checkRateLimit } = require("../../utils/rate-limiter");
 const { extractResults, injectSummary } = require("../../utils/html-processor");
 const { isGeneralSearch, extractQuery, shouldSummarize } = require("../../ai/summary-generator");
@@ -12,7 +12,11 @@ async function handleAutocomplete(req, res) {
     const query = req.query.q || req.query.s || "";
     const targetUrl = `${config.ENGINE_URL}/api/v1/ac?s=${encodeURIComponent(query)}`;
 
-    const response = await axios.get(targetUrl);
+    const response = await axios.get(targetUrl, {
+      headers: {
+        Cookie: req.headers.cookie || "",
+      },
+    });
     res.status(response.status).json(response.data);
   } catch (error) {
     log("Suggestions proxy error: " + error.message);
@@ -26,7 +30,7 @@ async function handleSearchRequest(req, res) {
   const isGenSearch = isGeneralSearch(req);
 
   const response = await makeRequest(req);
-  forwardHeaders(response, res);
+  forwardHeaders(response, res, req);
 
   if (isSearchRequest && isGenSearch && response.headers["content-type"]?.includes("text/html")) {
     log(`Processing HTML response for general search summary injection`);
@@ -56,68 +60,7 @@ async function handleSearchRequest(req, res) {
 }
 
 async function handleSettings(req, res) {
-  try {
-    const queryString = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
-    const targetUrl = `${config.ENGINE_URL}/settings${queryString}`;
-
-    const parsedUrl = new URL(targetUrl);
-    const httpModule = parsedUrl.protocol === "https:" ? require("https") : require("http");
-
-    const options = {
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port || (parsedUrl.protocol === "https:" ? 443 : 80),
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: "GET",
-      headers: {
-        "User-Agent": req.headers["user-agent"] || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        Accept: req.headers["accept"] || "text/html,application/xhtml+xml",
-      },
-    };
-
-    return new Promise((resolve, reject) => {
-      const proxyReq = httpModule.request(options, (proxyRes) => {
-        Object.entries(proxyRes.headers).forEach(([key, value]) => {
-          if (["transfer-encoding", "connection", "content-length"].includes(key.toLowerCase())) return;
-
-          if (key.toLowerCase() === "set-cookie") {
-            (Array.isArray(value) ? value : [value]).forEach((cookie) => cookie && res.append(key, cookie));
-          } else if (key.toLowerCase() === "location" && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
-            const externalUrl = config.getExternalUrl(req);
-            const location = value.toString().startsWith("/")
-              ? `${externalUrl}${value}`
-              : value.toString().replace(/localhost:\d+/, externalUrl);
-            res.setHeader(key, location);
-          } else {
-            res.setHeader(key, value);
-          }
-        });
-
-        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400) {
-          return res.status(proxyRes.statusCode).end();
-        }
-
-        res.status(proxyRes.statusCode);
-        proxyRes.pipe(res).on("end", resolve);
-      });
-
-      proxyReq.on("error", (error) => {
-        log("Settings proxy error: " + error.message);
-        res.status(500).send("Error proxying settings page");
-        reject(error);
-      });
-
-      proxyReq.end();
-    });
-  } catch (error) {
-    log("Settings proxy error: " + error.message);
-    return res.status(500).send("Error proxying settings page");
-  }
-}
-
-async function handleOtherRequests(req, res) {
-  const response = await makeRequest(req);
-  forwardHeaders(response, res);
-  res.status(response.status).send(response.data);
+  return handleSettingsRequest(req, res, "settings");
 }
 
 function registerRoutes(app) {
@@ -137,6 +80,7 @@ function registerRoutes(app) {
 
   // Engine-specific endpoints
   app.get("/settings", (req, res) => handleProxyRequest(req, res, handleSettings));
+  app.post("/settings", (req, res) => handleProxyRequest(req, res, handleSettings));
 
   // Handle all other requests
   app.all("*", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
@@ -145,6 +89,6 @@ function registerRoutes(app) {
 module.exports = {
   registerRoutes,
   handleSearchRequest,
-  handleOtherRequests,
   handleAutocomplete,
+  handleSettings,
 };
