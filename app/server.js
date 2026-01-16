@@ -45,6 +45,25 @@ app.get("/health", (req, res) => {
   res.status(200).send("OK");
 });
 
+// OpenSearch description document endpoint
+app.get("/opensearch.xml", (req, res) => {
+  const baseUrl = config.getExternalUrl(req);
+  const shortName = "Search Summarizer"; // config.ENGINE_NAME === "4get" ? "4get Search" : "SearXNG Search";
+  const description =
+    config.ENGINE_NAME === "4get" ? "Privacy-focused search with AI summaries" : "Metasearch engine with AI summaries";
+
+  res.type("application/opensearchdescription+xml");
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>${shortName}</ShortName>
+  <Description>${description}</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image width="16" height="16" type="image/x-icon">${baseUrl}/favicon.ico</Image>
+  <Url type="text/html" method="GET" template="${baseUrl}/search?q={searchTerms}"/>
+  <Url type="application/x-suggestions+json" method="GET" template="${baseUrl}/ac?q={searchTerms}"/>
+</OpenSearchDescription>`);
+});
+
 if (config.ENGINE_NAME === "4get") {
   registerFourgetRoutes(app);
 } else {

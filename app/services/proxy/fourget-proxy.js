@@ -7,6 +7,17 @@ const { log } = require("../../utils/logger");
 const { getActiveTemplate } = require("../../utils/template-loader");
 const config = require("../../settings");
 
+function injectOpenSearchLink(html, req) {
+  const headMatch = html.match(/<head[^>]*>/i);
+  if (headMatch) {
+    const baseUrl = config.getExternalUrl(req);
+    const shortName = config.ENGINE_NAME === "4get" ? "4get Search" : "SearXNG Search";
+    const opensearchLink = `<link rel="search" type="application/opensearchdescription+xml" title="${shortName}" href="${baseUrl}/opensearch.xml">`;
+    return html.replace(headMatch[0], headMatch[0] + opensearchLink);
+  }
+  return html;
+}
+
 async function handleAutocomplete(req, res) {
   try {
     const query = req.query.q || req.query.s || "";
@@ -34,7 +45,9 @@ async function handleSearchRequest(req, res) {
 
   if (isSearchRequest && isGenSearch && response.headers["content-type"]?.includes("text/html")) {
     log(`Processing HTML response for general search summary injection`);
-    const html = response.data.toString();
+    let html = response.data.toString();
+
+    html = injectOpenSearchLink(html, req);
     const results = extractResults(html);
 
     log(`Extracted ${results.length} results from HTML for ${config.ENGINE_NAME}`);
@@ -58,7 +71,8 @@ async function handleSearchRequest(req, res) {
   } else {
     // For any HTML response, rewrite URLs to point to our proxy
     if (response.headers["content-type"]?.includes("text/html")) {
-      const html = response.data.toString();
+      let html = response.data.toString();
+      html = injectOpenSearchLink(html, req);
       const rewrittenHTML = rewriteUrls(html);
       return res.status(response.status).send(rewrittenHTML);
     }
