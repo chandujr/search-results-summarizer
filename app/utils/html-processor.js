@@ -7,7 +7,10 @@ const logger = require("../utils/logger");
 function rewriteUrls(html) {
   if (config.ENGINE_NAME === "4get") {
     html = html.replace(/action=["']\/web["']/gi, 'action="/search"');
-    html = html.replace(/href=["']\/web\?s=/gi, 'href="/search?s=');
+    html = html.replace(/action=["']web["']/gi, 'action="/search"');
+    html = html.replace(/href=["']\/web\?s=/gi, 'href="/search?q=');
+    html = html.replace(/href=["']\/(\w+)\?s=/gi, 'href="/$1?q=');
+    html = html.replace(/name=["']s["']/gi, 'name="q"');
     html = html.replace(/src=["']\/proxy\?i=/gi, 'src="/proxy?i=');
   } else if (config.ENGINE_NAME === "searxng") {
     html = html.replace(/action=["']\/search["']/gi, 'action="/search"');

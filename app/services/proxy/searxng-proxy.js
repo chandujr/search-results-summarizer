@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { makeRequest, forwardHeaders, handleProxyRequest, handleSettingsRequest } = require("./base-proxy");
 const { checkRateLimit } = require("../../utils/rate-limiter");
-const { extractResults, injectSummary } = require("../../utils/html-processor");
+const { extractResults, injectSummary, rewriteUrls } = require("../../utils/html-processor");
 const { isGeneralSearch, extractQuery, shouldSummarize } = require("../../ai/summary-generator");
 const { log } = require("../../utils/logger");
 const { getActiveTemplate } = require("../../utils/template-loader");
@@ -48,9 +48,16 @@ async function handleSearchRequest(req, res) {
       if (summarizeResult.reason) {
         log(`Summary not generated: ${summarizeResult.reason}`);
       }
-      return res.status(response.status).send(html);
+      const rewrittenHTML = rewriteUrls(html);
+      return res.status(response.status).send(rewrittenHTML);
     }
   } else {
+    // For any HTML response, rewrite URLs to point to our proxy
+    if (response.headers["content-type"]?.includes("text/html")) {
+      const html = response.data.toString();
+      const rewrittenHTML = rewriteUrls(html);
+      return res.status(response.status).send(rewrittenHTML);
+    }
     res.status(response.status).send(response.data);
   }
 }
@@ -67,6 +74,8 @@ function registerRoutes(app) {
   // Handle preferences
   app.get("/preferences", (req, res) => handleProxyRequest(req, res, handlePreferences));
   app.post("/preferences", (req, res) => handleProxyRequest(req, res, handlePreferences));
+
+  app.get("/", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
 
   // Handle all other requests
   app.all("*", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
