@@ -13,6 +13,8 @@ const requiredConfigProperties = [
   "MIN_KEYWORD_COUNT",
   "MIN_RESULT_COUNT",
   "MODIFY_CSP_HEADERS",
+  "TRUST_PROXY",
+  "PROXY_IP_RANGE",
   "EXCLUDE_WORDS",
   "EXCLUDE_OVERRIDES",
 ];
@@ -98,6 +100,8 @@ try {
       ) {
         config[prop] = parseInt(config[prop], 10);
       } else if (prop === "MODIFY_CSP_HEADERS") {
+        config[prop] = config[prop] === "true" || config[prop] === "1";
+      } else if (prop === "TRUST_PROXY") {
         config[prop] = config[prop] === "true" || config[prop] === "1";
       } else if (prop === "EXCLUDE_WORDS" || prop === "EXCLUDE_OVERRIDES") {
         config[prop] = process.env[prop].split(",");

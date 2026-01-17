@@ -11,6 +11,10 @@ const { registerRoutes: registerFourgetRoutes } = require("./services/proxy/four
 
 const app = express();
 
+if (config.TRUST_PROXY) {
+  app.set("trust proxy", config.PROXY_IP_RANGE);
+}
+
 loadTemplates();
 
 app.use(express.json());

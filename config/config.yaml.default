@@ -47,6 +47,21 @@ MIN_RESULT_COUNT: 3
 # Options: true (modify CSP), false (forward original CSP as-is)
 MODIFY_CSP_HEADERS: false
 
+# Proxy configuration
+# Set to true when running behind a reverse proxy
+# This allows Express to correctly use the X-Forwarded-For header for rate limiting
+# When enabled, we specifically trust only the cloud provider's proxy to prevent rate limit bypass
+# Options: true (trust proxy headers), false (don't trust proxy headers)
+TRUST_PROXY: false
+
+# IP range of trusted proxy when TRUST_PROXY is enabled
+# Default: "10.0.0.0/8" (Render's internal IP range)
+# Other common values:
+# - "172.16.0.0/12" (AWS, Google Cloud)
+# - "192.168.0.0/16" (Heroku)
+# - ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] (multiple ranges)
+PROXY_IP_RANGE: "10.0.0.0/8"
+
 # Summarization filters (these are ignored when SUMMARY_MODE is set to "manual")
 # Words in search queries that prevent summarization
 EXCLUDE_WORDS:
