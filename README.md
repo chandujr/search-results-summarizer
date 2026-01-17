@@ -1,6 +1,6 @@
 # Search Results Summarizer
 
-AI-powered search results summary generator that works transparently with your existing search engine instances (like SearXNG or 4get) using OpenRouter.
+AI-powered search results summary generator that works transparently with existing search engine instances (like SearXNG or 4get) using OpenRouter.
 
 https://github.com/user-attachments/assets/7cf471f5-4837-4d29-aada-657bcd66db57
 
@@ -120,6 +120,8 @@ https://github.com/user-attachments/assets/7cf471f5-4837-4d29-aada-657bcd66db57
 - `MAX_RESULTS_FOR_SUMMARY`: Number of results to summarize (default: 7)
 - `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
 - `MODIFY_CSP_HEADERS`: Set to `true` if using public search engine instances that block external scripts (default: `false`)
+- `TRUST_PROXY`: Set to `true` when running behind a reverse proxy - needed for proper rate limiting (default: `false`)
+- `PROXY_IP_RANGE`: IP range of trusted proxy when TRUST_PROXY is enabled (default: "10.0.0.0/8" for Render)
 
 ## Docker Networking Note
 
@@ -148,21 +150,10 @@ To connect to your installed search engine running on your host machine:
 
 ## Usage
 
-You can access this service at `http://localhost:3000`. It will load your chosen search engine.
+1. Access the service at `http://localhost:3000` (or your configured port) to verify it's working
+2. Visit the service once, then you can set it as your default search engine through your browser's settings
 
-You may also set this as your browser's default search engine.
-
-For Brave Browser:
-1. Open Brave Settings → Search Engine
-2. Click "Manage search engines and site search"
-3. Click "Add" button
-4. Fill in:
-   - **Search engine**: Search Results Summarizer
-   - **Shortcut**: srs
-   - **URL**: `http://localhost:3000/search?q=%s`
-   - **Suggestions URL**: `http://localhost:3000/ac?q=%s` (in Brave, you have to edit the `Preferences` file of your browser profile to set this)
-5. Click "Add"
-6. Make it your default search engine
+Most modern browsers allow you to add this as a search engine.
 
 ## Privacy
 
