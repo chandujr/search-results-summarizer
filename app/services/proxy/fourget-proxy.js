@@ -23,15 +23,38 @@ async function handleAutocomplete(req, res) {
     const query = req.query.q || req.query.s || "";
     const targetUrl = `${config.ENGINE_URL}/api/v1/ac?s=${encodeURIComponent(query)}`;
 
+    // Force IPv4 for HTTPS requests to avoid potential IPv6 resolution issues
+    const httpsAgent = require("https").Agent({
+      family: 4,
+      keepAlive: true,
+    });
+
+    const httpAgent = require("http").Agent({
+      family: 4,
+      keepAlive: true,
+    });
+
     const response = await axios.get(targetUrl, {
       headers: {
         Cookie: req.headers.cookie || "",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       },
+      httpsAgent,
+      httpAgent,
+      timeout: 10000,
     });
-    res.status(response.status).json(response.data);
+    return res.status(response.status).json(response.data);
   } catch (error) {
-    log("Suggestions proxy error: " + error.message);
-    res.status(500).json([]);
+    const errorDetails = {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: `${config.ENGINE_URL}/api/v1/ac`,
+    };
+    log("Suggestions proxy error: " + JSON.stringify(errorDetails, null, 2));
+    return res.status(500).json([]);
   }
 }
 
@@ -76,7 +99,7 @@ async function handleSearchRequest(req, res) {
       const rewrittenHTML = rewriteUrls(html);
       return res.status(response.status).send(rewrittenHTML);
     }
-    res.status(response.status).send(response.data);
+    return res.status(response.status).send(response.data);
   }
 }
 

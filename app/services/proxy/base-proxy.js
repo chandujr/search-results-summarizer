@@ -69,8 +69,8 @@ function processHeaders(headers, res, req, skipLocation = false) {
         modifiedCSP = modifiedCSP.replace(/connect-src 'self'/g, "connect-src 'self' https://cdn.jsdelivr.net");
         modifiedCSP = modifiedCSP.replace(/style-src 'self'/g, "style-src 'self' 'unsafe-inline'");
 
-        log(`[CSP Modified] Original: ${originalCSP.substring(0, 200)}...`);
-        log(`[CSP Modified] Modified: ${modifiedCSP.substring(0, 200)}...`);
+        // log(`[CSP Modified] Original: ${originalCSP.substring(0, 200)}...`);
+        // log(`[CSP Modified] Modified: ${modifiedCSP.substring(0, 200)}...`);
 
         res.setHeader(key, modifiedCSP);
       } else if (key.toLowerCase() === "set-cookie") {
