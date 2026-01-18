@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { log } = require("../../utils/logger");
+const { rewriteUrls } = require("../../utils/html-processor");
 const config = require("../../settings");
 
 async function makeRequest(req) {
@@ -148,6 +149,12 @@ async function handleProxyRequest(req, res, handler) {
 async function handleGenericRequest(req, res) {
   const response = await makeRequest(req);
   forwardHeaders(response, res, req);
+
+  if (response.headers["content-type"]?.includes("text/html")) {
+    const rewrittenHTML = rewriteUrls(response.data.toString());
+    return res.status(response.status).send(rewrittenHTML);
+  }
+
   res.status(response.status).send(response.data);
 }
 
@@ -155,6 +162,12 @@ async function handleSettingsRequest(req, res, endpointName = "settings") {
   try {
     const response = await makeRequest(req);
     forwardHeaders(response, res, req);
+
+    if (response.headers["content-type"]?.includes("text/html")) {
+      const rewrittenHTML = rewriteUrls(response.data.toString());
+      return res.status(response.status).send(rewrittenHTML);
+    }
+
     res.status(response.status).send(response.data);
   } catch (error) {
     log(`${endpointName} proxy error: ` + error.message);

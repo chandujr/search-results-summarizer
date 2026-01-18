@@ -1,5 +1,11 @@
 const axios = require("axios");
-const { makeRequest, forwardHeaders, handleProxyRequest, handleSettingsRequest } = require("./base-proxy");
+const {
+  makeRequest,
+  forwardHeaders,
+  handleProxyRequest,
+  handleSettingsRequest,
+  handleGenericRequest,
+} = require("./base-proxy");
 const { checkRateLimit } = require("../../utils/rate-limiter");
 const { extractResults, injectSummary, rewriteUrls } = require("../../utils/html-processor");
 const { isGeneralSearch, extractQuery, shouldSummarize } = require("../../ai/summary-generator");
@@ -108,6 +114,20 @@ async function handleSettings(req, res) {
 }
 
 function registerRoutes(app) {
+  function handleEndpoint(engineEndpoint) {
+    return (req, res) => {
+      // Modify URL to 4get's endpoint and query parameter
+      const query = req.query.q || req.query.s;
+      delete req.query.q;
+      delete req.query.s;
+
+      // Set the query parameter that 4get expects
+      req.query.s = query;
+      req.url = `/${engineEndpoint}?` + new URLSearchParams(req.query).toString();
+      return handleProxyRequest(req, res, handleGenericRequest);
+    };
+  }
+
   // Unified endpoints (must be registered before catch-all)
   app.get("/search", (req, res) => {
     // Modify URL to 4get's endpoint and query parameter
@@ -125,6 +145,10 @@ function registerRoutes(app) {
   // Engine-specific endpoints
   app.get("/settings", (req, res) => handleProxyRequest(req, res, handleSettings));
   app.post("/settings", (req, res) => handleProxyRequest(req, res, handleSettings));
+  app.get("/images", handleEndpoint("images"));
+  app.get("/videos", handleEndpoint("videos"));
+  app.get("/news", handleEndpoint("news"));
+  app.get("/music", handleEndpoint("music"));
 
   app.get("/", (req, res) => handleProxyRequest(req, res, handleSearchRequest));
 
