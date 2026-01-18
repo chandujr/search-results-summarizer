@@ -32,6 +32,7 @@ Thumbs.db
 # Others
 # --------------------
 tests/
+test/
 AGENTS.md
 .git/
 config.yaml
