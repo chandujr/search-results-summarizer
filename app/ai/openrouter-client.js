@@ -39,7 +39,7 @@ function createAIPrompt(query, resultsText, dateToday) {
 
       Format:
       - For "what/how/explain" queries: explain concepts first
-      - For technical queries: prioritize accuracy and definitions
+      - For technical queries: prioritize accuracy and direct answer without introductions
       - For current events: summarize key points and viewpoints
       - Note agreement/disagreement between sources
       - No hyperlinks or follow-up questions
