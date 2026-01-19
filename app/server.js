@@ -38,6 +38,11 @@ app.use("/api/", (req, res, next) => {
   return globalLimiter(req, res, next);
 });
 
+// Serve template utilities JavaScript file
+app.get("/js/template-utils.js", (req, res) => {
+  res.sendFile("template-utils.js", { root: "./utils/client" });
+});
+
 app.post("/api/summary", (req, res) => {
   const { query, results } = req.body;
   const sanitizedQuery = DOMPurify.sanitize(query);

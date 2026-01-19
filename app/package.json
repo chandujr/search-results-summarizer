@@ -1,6 +1,6 @@
 {
   "name": "search-results-summarizer",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "AI-powered search results summary generator that works transparently with existing search engine instances (like SearXNG or 4get) using OpenRouter",
   "main": "server.js",
   "scripts": {
