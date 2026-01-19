@@ -137,6 +137,15 @@
   .summary-expand-btn-container {
     display: none;
     text-align: center;
+    /* Remove blue highlight */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    outline: none;
+    -webkit-focus-ring-color: transparent;
   }
 
   .toggle-summary-btn {
@@ -375,7 +384,7 @@
         if (container.scrollHeight > maxHeight) {
           fadeOverlay.style.display = 'block';
         }
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        container.scrollIntoView({ behavior: 'auto', block: 'start' });
       }
     }
 
