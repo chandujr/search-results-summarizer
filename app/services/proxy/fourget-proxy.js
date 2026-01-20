@@ -17,7 +17,7 @@ function injectOpenSearchLink(html, req) {
   const headMatch = html.match(/<head[^>]*>/i);
   if (headMatch) {
     const baseUrl = config.getExternalUrl(req);
-    const shortName = config.ENGINE_NAME === "4get" ? "4get Search" : "SearXNG Search";
+    const shortName = "4get Search";
     const opensearchLink = `<link rel="search" type="application/opensearchdescription+xml" title="${shortName}" href="${baseUrl}/opensearch.xml">`;
     return html.replace(headMatch[0], headMatch[0] + opensearchLink);
   }

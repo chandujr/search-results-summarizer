@@ -57,10 +57,8 @@ app.get("/health", (req, res) => {
 // OpenSearch description document endpoint
 app.get("/opensearch.xml", (req, res) => {
   const baseUrl = config.getExternalUrl(req);
-  const shortName = "Search Summarizer"; // config.ENGINE_NAME === "4get" ? "4get Search" : "SearXNG Search";
-  const description =
-    config.ENGINE_NAME === "4get" ? "Privacy-focused search with AI summaries" : "Metasearch engine with AI summaries";
-
+  const shortName = "Search Summarizer";
+  const description = "Metasearch engine with AI summaries";
   res.type("application/opensearchdescription+xml");
   res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
