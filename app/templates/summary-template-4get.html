@@ -23,10 +23,8 @@
     <div id="summary-expand-btn" class="summary-expand-btn-container">
       <button id="toggle-summary" class="toggle-summary-btn">Show more</button>
     </div>
-    <div class="powered-by">Powered by {{MODEL_NAME}}</div>
-    <div class="disclaimer">
-      Summaries are AI-generated from search results, with no guarantee of accuracy or responsibility.
-    </div>
+    <div class="powered-by">Powered by {{MODEL_NAME}} via {{PROVIDER_NAME}}</div>
+    <div class="disclaimer">AI summaries may be inaccurate. Caution advised.</div>
   </div>
 </div>
 
@@ -162,13 +160,13 @@
 
   .powered-by {
     padding-top: 8px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--928374);
     border-top: 1px solid var(--504945);
   }
 
   .disclaimer {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--928374);
     line-height: 1.4;
   }

@@ -3,22 +3,29 @@ const https = require("https");
 const config = require("../settings");
 const { log } = require("../utils/logger");
 
-// Force IPv4 for all HTTPS requests to avoid connection issues
 const httpsAgent = new https.Agent({
   family: 4,
   keepAlive: true,
   timeout: 60000,
 });
 
-// Initialize OpenRouter client with IPv4 agent
-const openrouter = new OpenAI({
-  apiKey: config.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "X-Title": "Search Results Summarizer",
-  },
-  httpAgent: httpsAgent,
-});
+function getOpenRouterClient(refererUrl) {
+  if (!config.OPENROUTER_API_KEY) {
+    throw new Error("OpenRouter API key is missing");
+  }
+
+  return new OpenAI({
+    apiKey: config.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "X-Title": "Search Results Summarizer",
+      "HTTP-Referer": refererUrl,
+    },
+    httpAgent: httpsAgent,
+    timeout: 60000,
+    maxRetries: 3,
+  });
+}
 
 function createAIPrompt(query, resultsText, dateToday) {
   return [
@@ -62,18 +69,23 @@ async function handleStreamResponse(stream, res) {
   log("Stream started");
   let chunkCount = 0;
 
-  for await (const chunk of stream) {
-    const content = chunk.choices?.[0]?.delta?.content || chunk.choices?.[0]?.text || chunk.content || "";
+  try {
+    for await (const chunk of stream) {
+      const content = chunk.choices?.[0]?.delta?.content || "";
 
-    if (content) {
-      chunkCount++;
-      res.write(JSON.stringify({ content }) + "\n");
+      if (content) {
+        chunkCount++;
+        res.write(JSON.stringify({ content }) + "\n");
+      }
     }
-  }
 
-  log(`Stream completed (${chunkCount} chunks)`);
-  res.write(JSON.stringify({ done: true }) + "\n");
-  res.end();
+    log(`Stream completed (${chunkCount} chunks)`);
+    res.write(JSON.stringify({ done: true }) + "\n");
+    res.end();
+  } catch (error) {
+    log(`Stream processing error: ${error.message}`);
+    throw error;
+  }
 }
 
 function handleStreamError(res, error) {
@@ -98,9 +110,9 @@ async function createSummaryStream(query, results, res, req) {
   }
 
   try {
-    // Set the HTTP-Referer header dynamically based on the request
     const refererUrl = config.getExternalUrl(req);
     log(`Using referer URL: ${refererUrl}`);
+
     const topResults = results.slice(0, config.MAX_RESULTS_FOR_SUMMARY);
     const resultsText = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
     const dateToday = getTodayDate();
@@ -113,14 +125,15 @@ async function createSummaryStream(query, results, res, req) {
     log(`Summarizing from top ${topResults.length} results`);
 
     const prompt = createAIPrompt(query, resultsText, dateToday);
+
+    const openrouter = getOpenRouterClient(refererUrl);
+
     const stream = await openrouter.chat.completions.create({
-      model: config.OPENROUTER_MODEL,
+      model: config.MODEL_ID,
       messages: prompt,
       max_tokens: config.MAX_TOKENS,
+      temperature: 0.6,
       stream: true,
-      headers: {
-        "HTTP-Referer": refererUrl,
-      },
     });
 
     await handleStreamResponse(stream, res);

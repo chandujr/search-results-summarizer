@@ -5,21 +5,21 @@ const yaml = require("js-yaml");
 const requiredConfigProperties = [
   "ENGINE_NAME",
   "ENGINE_URL",
-  "OPENROUTER_MODEL",
-  "MAX_RESULTS_FOR_SUMMARY",
-  "SUMMARY_MODE",
-  "RATE_LIMIT_MS",
+  "AI_PROVIDER",
+  "MODEL_ID",
+  "OLLAMA_URL",
   "MAX_TOKENS",
-  "MIN_KEYWORD_COUNT",
-  "MIN_RESULT_COUNT",
+  "RATE_LIMIT_MS",
+  "SUMMARY_MODE",
+  "MAX_RESULTS_FOR_SUMMARY",
   "MODIFY_CSP_HEADERS",
   "TRUST_PROXY",
   "PROXY_IP_RANGE",
+  "MIN_KEYWORD_COUNT",
+  "MIN_RESULT_COUNT",
   "EXCLUDE_WORDS",
   "EXCLUDE_OVERRIDES",
 ];
-
-const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
 const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.yaml";
 const envFilePath = "/config/.env";
@@ -77,14 +77,24 @@ try {
     throw new Error(`Missing required configuration properties: ${missingProperties.join(", ")}`);
   }
 
-  // Check if all required environment variables are present
-  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  // Check if all required environment variables are present based on AI provider
+  const aiProvider = fileConfig.AI_PROVIDER || process.env.AI_PROVIDER;
+  let missingEnvVars = [];
+
+  if (aiProvider === "openrouter") {
+    missingEnvVars = ["OPENROUTER_API_KEY"].filter((envVar) => !process.env[envVar]);
+  }
+
   if (missingEnvVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
   }
 
   config = fileConfig;
-  config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+
+  // Only add OpenRouter API key if using OpenRouter
+  if (config.AI_PROVIDER === "openrouter") {
+    config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  }
 
   // Override config properties with environment variables if they exist
   requiredConfigProperties.forEach((prop) => {

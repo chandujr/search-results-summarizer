@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 const config = require("./settings");
 const { log } = require("./utils/logger");
 const { loadTemplates } = require("./utils/template-loader");
-const { createSummaryStream } = require("./ai/openrouter-client");
+const { getAIClient } = require("./ai/ai-client-factory");
 const DOMPurify = require("isomorphic-dompurify");
 
 const { registerRoutes: registerSearxngRoutes } = require("./services/proxy/searxng-proxy");
@@ -46,7 +46,8 @@ app.get("/js/template-utils.js", (req, res) => {
 app.post("/api/summary", (req, res) => {
   const { query, results } = req.body;
   const sanitizedQuery = DOMPurify.sanitize(query);
-  createSummaryStream(sanitizedQuery, results, res, req);
+  const aiClient = getAIClient();
+  aiClient.createSummaryStream(sanitizedQuery, results, res, req);
 });
 
 // Health check endpoint for cloud hosting platforms
@@ -81,6 +82,7 @@ app.listen(config.PORT, config.HOST, () => {
   log(`Search Results Summarizer running on port ${config.PORT}`);
   log(`Search Engine: ${config.ENGINE_NAME}`);
   log(`Proxying to: ${config.ENGINE_URL}`);
-  log(`AI Model: ${config.OPENROUTER_MODEL}`);
+  log(`AI Provider: ${config.AI_PROVIDER}`);
+  log(`AI Model: ${config.MODEL_ID}`);
   log(`Summary: Enabled (Streaming)`);
 });
