@@ -123,23 +123,39 @@ function preprocessLatex(markdown) {
   const latexBlocks = [];
   let index = 0;
 
-  // Use base64-like format that won't trigger any Markdown syntax
-  // Format: LTXD0D (LaTeX Display 0 Display) or LTXI0I (LaTeX Inline 0 Inline)
-
-  markdown = markdown.replace(/\\\[([\s\S]*?)\\\]/g, (match) => {
+  // Match $$ that might be on their own line, with content on following lines
+  markdown = markdown.replace(/\$\$\s*\n([\s\S]*?)\n\s*\$\$/g, (match, content) => {
     const placeholder = `LTXD${index}D`;
-    latexBlocks[index] = { type: "display-bracket", content: match };
+    // Keep the delimiters but put everything on one line
+    latexBlocks[index] = { type: "display-dollar", content: `$$${content.trim()}$$` };
     index++;
     return placeholder;
   });
 
-  markdown = markdown.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
+  // Also handle $$ ... $$ on the same line (fallback)
+  markdown = markdown.replace(/\$\$([\s\S]+?)\$\$/g, (match) => {
     const placeholder = `LTXD${index}D`;
     latexBlocks[index] = { type: "display-dollar", content: match };
     index++;
     return placeholder;
   });
 
+  // Handle \[ ... \] with potential newlines
+  markdown = markdown.replace(/\\\[\s*\n([\s\S]*?)\n\s*\\\]/g, (match, content) => {
+    const placeholder = `LTXD${index}D`;
+    latexBlocks[index] = { type: "display-bracket", content: `\\[${content.trim()}\\]` };
+    index++;
+    return placeholder;
+  });
+
+  markdown = markdown.replace(/\\\[([\s\S]+?)\\\]/g, (match) => {
+    const placeholder = `LTXD${index}D`;
+    latexBlocks[index] = { type: "display-bracket", content: match };
+    index++;
+    return placeholder;
+  });
+
+  // Inline math - these should be on one line already
   markdown = markdown.replace(/\\\((.+?)\\\)/g, (match) => {
     const placeholder = `LTXI${index}I`;
     latexBlocks[index] = { type: "inline-paren", content: match };
