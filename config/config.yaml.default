@@ -35,9 +35,6 @@ MAX_TOKENS: 750
 
 #################### Performance settings ##########################################
 
-# Rate limit in milliseconds between requests (to avoid spam)
-RATE_LIMIT_MS: 1000
-
 # Summary generation mode
 # Options:
 # 1. "auto" (automatically generate summaries when conditions are met)
@@ -68,6 +65,9 @@ TRUST_PROXY: false
 # - "192.168.0.0/16" (Heroku)
 # - ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] (multiple ranges)
 PROXY_IP_RANGE: "10.0.0.0/8"
+
+# Rate limit in milliseconds between requests (to avoid spam)
+RATE_LIMIT_MS: 1000
 
 #################### Summarization filters #########################################
 # These are ignored when SUMMARY_MODE is set to "manual"
