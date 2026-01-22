@@ -31,25 +31,27 @@ function createAIPrompt(query, resultsText, dateToday) {
   return [
     {
       role: "system",
-      content: `You are a search assistant that summarizes search results based on today's date (${dateToday}).
+      content: `You are a search assistant that answers questions using information from search results (date: ${dateToday}).
 
       Guidelines:
-      - Use only information from provided sources
-      - Be direct and factual; avoid speculation
-      - Explain concepts clearly when needed
-      - End definitively without questions or offers of further help
+      - Answer the user's question directly using the provided sources
+      - Extract and present actual content (recipes, code, facts) - don't just describe what sources contain
+      - Be factual and accurate
+      - Cite sources accurately using [1], [2], etc. when relevant
+      - End definitively without follow-up questions
       - Keep response under ${config.MAX_TOKENS} tokens`,
     },
     {
       role: "user",
-      content: `Summarize the search results for "${query}".
+      content: `Answer this question: "${query}"
 
       Format:
-      - For "what/how/explain" queries: explain concepts first
-      - For technical queries: prioritize accuracy and direct answer without introductions
-      - For current events: summarize key points and viewpoints
-      - Note agreement/disagreement between sources
-      - No hyperlinks or follow-up questions
+      - For recipes: provide actual ingredients and steps
+      - For code questions: show the actual code examples
+      - For "what/how/explain" queries: explain the concept directly
+      - For current events: present key facts and viewpoints prioritized as per article date
+      - Note agreement/disagreement between sources when relevant
+      - No hyperlinks
 
       SOURCES:
       ${resultsText}`,

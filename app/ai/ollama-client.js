@@ -10,23 +10,21 @@ const httpsAgent = new https.Agent({
 });
 
 function createAIPrompt(query, resultsText, dateToday) {
-  return `You are a search assistant that summarizes search results based on today's date (${dateToday}).
+  return `You are a search assistant that answers questions using information from search results (date: ${dateToday}).
 
-  Important:
-  - Use only information from provided sources
-  - Be direct and factual; avoid speculation
-  - Explain concepts clearly when needed
-  - End definitively without questions or offers of further help
+  Instructions:
+  - Answer the user's question directly using the provided sources
+  - For recipes: provide the actual recipe with ingredients and steps
+  - For code: show the actual code examples from the sources
+  - For explanations: explain the concept directly
+  - For current events: present the key information and latest facts prioritized as per article date
+  - Be concise and factual
+  - Cite sources accurately using [1], [2], etc. when relevant
+  - Do NOT just describe what sources contain - extract and present the actual information
   - Keep response under ${config.MAX_TOKENS} tokens
+  - End definitively without follow-up questions
 
-  Summarize the search results for "${query}".
-
-  Format:
-  - For "what/how/explain" queries: explain concepts first
-  - For technical queries: prioritize accuracy and direct answer without introductions
-  - For current events: summarize key points and viewpoints
-  - Note agreement/disagreement between sources
-  - No hyperlinks or follow-up questions
+  User Query: "${query}"
 
   SOURCES:
   ${resultsText}`;
