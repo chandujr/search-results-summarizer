@@ -32,7 +32,7 @@ function createAIPrompt(query, resultsText, dateToday) {
 
 function getTodayDate() {
   return new Date().toLocaleDateString("en-US", {
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
   });
@@ -106,7 +106,9 @@ async function createSummaryStream(query, results, res, req) {
 
   try {
     const topResults = results.slice(0, config.MAX_RESULTS_FOR_SUMMARY);
-    const resultsText = topResults.map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}`).join("\n\n");
+    const resultsText = topResults
+      .map((r, i) => `[${i + 1}] ${r.title}\n${r.content || r.url}\n${r.date}`)
+      .join("\n\n");
     const dateToday = getTodayDate();
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
