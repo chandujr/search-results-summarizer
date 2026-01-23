@@ -60,7 +60,12 @@ async function handleStreamResponse(response, res) {
 
           // Check if streaming is complete
           if (data.done) {
-            log(`Stream completed (${chunkCount} chunks)`);
+            let inputTokens = data.prompt_eval_count || 0;
+            let outputTokens = data.eval_count || 0;
+            const totalTokens = inputTokens + outputTokens;
+            log(
+              `Stream completed (${chunkCount} chunks). Input tokens: ${inputTokens}, Output tokens: ${outputTokens}, Total: ${totalTokens}`,
+            );
             res.write(JSON.stringify({ done: true }) + "\n");
             res.end();
             return;
@@ -116,6 +121,7 @@ async function createSummaryStream(query, results, res, req) {
     res.setHeader("Cache-Control", "no-cache");
     res.flushHeaders();
 
+    log(`Query: "${query}"`);
     log(`Summarizing from top ${topResults.length} results using Ollama`);
 
     const prompt = createAIPrompt(query, resultsText, dateToday);

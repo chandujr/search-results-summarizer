@@ -70,10 +70,18 @@ function getTodayDate() {
 async function handleStreamResponse(stream, res) {
   log("Stream started");
   let chunkCount = 0;
+  let inputTokens = 0;
+  let outputTokens = 0;
 
   try {
     for await (const chunk of stream) {
       const content = chunk.choices?.[0]?.delta?.content || "";
+      const usage = chunk.usage;
+
+      if (usage) {
+        inputTokens = usage.prompt_tokens || inputTokens;
+        outputTokens = usage.completion_tokens || outputTokens;
+      }
 
       if (content) {
         chunkCount++;
@@ -81,7 +89,10 @@ async function handleStreamResponse(stream, res) {
       }
     }
 
-    log(`Stream completed (${chunkCount} chunks)`);
+    const totalTokens = inputTokens + outputTokens;
+    log(
+      `Stream completed (${chunkCount} chunks). Input tokens: ${inputTokens}, Output tokens: ${outputTokens}, Total: ${totalTokens}`,
+    );
     res.write(JSON.stringify({ done: true }) + "\n");
     res.end();
   } catch (error) {
@@ -126,6 +137,7 @@ async function createSummaryStream(query, results, res, req) {
     res.setHeader("Cache-Control", "no-cache");
     res.flushHeaders();
 
+    log(`Query: "${query}"`);
     log(`Summarizing from top ${topResults.length} results`);
 
     const prompt = createAIPrompt(query, resultsText, dateToday);
