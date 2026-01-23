@@ -36,14 +36,10 @@ function createAIPrompt(query, resultsText, dateToday) {
       Guidelines:
       - Answer the user's question directly using the provided sources
       - Extract and present actual content (recipes, code, facts) - don't just describe what sources contain
-      - Be factual and accurate
+      - Be concise and factual
       - Cite sources accurately using [1], [2], etc. when relevant
       - End definitively without follow-up questions
-      - Keep response under ${config.MAX_TOKENS} tokens`,
-    },
-    {
-      role: "user",
-      content: `Answer this question: "${query}"
+      - Keep response under ${config.MAX_TOKENS} tokens
 
       Format:
       - For recipes: provide actual ingredients and steps
@@ -51,7 +47,11 @@ function createAIPrompt(query, resultsText, dateToday) {
       - For "what/how/explain" queries: explain the concept directly
       - For current events: present key facts and viewpoints prioritized as per article date
       - Note agreement/disagreement between sources when relevant
-      - No hyperlinks
+      - No hyperlinks`,
+    },
+    {
+      role: "user",
+      content: `Answer this question: "${query}"
 
       SOURCES:
       ${resultsText}`,
