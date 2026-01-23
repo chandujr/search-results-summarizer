@@ -91,6 +91,13 @@ try {
 
   config = fileConfig;
 
+  if (typeof config.EXCLUDE_WORDS === "string") {
+    config.EXCLUDE_WORDS = config.EXCLUDE_WORDS.split(",");
+  }
+  if (typeof config.EXCLUDE_OVERRIDES === "string") {
+    config.EXCLUDE_OVERRIDES = config.EXCLUDE_OVERRIDES.split(",");
+  }
+
   // Only add OpenRouter API key if using OpenRouter
   if (config.AI_PROVIDER === "openrouter") {
     config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
