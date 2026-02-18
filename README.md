@@ -122,9 +122,13 @@ In `config/config.yaml`, configure:
   - For Ollama: Find model names using `ollama list`
 - `OLLAMA_URL`: Only required when using Ollama
 - `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
+- `CLASSIFICATION_MODEL_ID`: AI model to use for query classification in "smart" mode
+  - Should be a smaller model that supports function/tool calling
+  - For OpenRouter: models like "google/gemini-flash-1.5-8b" or similar
+  - For Ollama: models that support tool calling like "llama3.1:8b" or similar
 
 #### Performance
-- `SUMMARY_MODE`: "auto" (automatic) or "manual" (button-triggered)
+- `SUMMARY_MODE`: "auto" (automatic), "manual" (button-triggered), or "smart" (AI decides when to summarize)
 - `MAX_RESULTS_FOR_SUMMARY`: Number of results to summarize (default: 7)
 - `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
 
@@ -139,6 +143,8 @@ In `config/config.yaml`, configure:
 - `MIN_RESULT_COUNT`: Minimum search results required (default: 3)
 - `EXCLUDE_WORDS`: Words that prevent summarization
 - `EXCLUDE_OVERRIDES`: Words that override the exclude list and force summarization
+
+Note: The "smart" mode bypasses these filters and uses AI to determine if summarization is needed.
 
 ## Docker Networking Note
 

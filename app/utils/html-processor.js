@@ -189,7 +189,7 @@ function injectSummary(html, query, results, summaryTemplate, isManualMode = fal
     date: result.date,
   }));
 
-  let model_name = config.AI_PROVIDER === "openrouter" ? config.MODEL_ID.split("/")[1] : config.MODEL_ID;
+  let model_name = config.MODEL_ID.split("/")[1] || config.MODEL_ID;
   // make it pretty
   model_name = model_name.replace(/(^|[^a-zA-Z])[a-z]/g, (match) => match.toUpperCase());
   let provider_name = config.AI_PROVIDER === "openrouter" ? "OpenRouter" : "Ollama";

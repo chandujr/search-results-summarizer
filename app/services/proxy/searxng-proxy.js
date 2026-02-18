@@ -75,7 +75,7 @@ async function handleSearchRequest(req, res) {
 
     log(`Extracted ${results.length} results from HTML for ${config.ENGINE_NAME}`);
 
-    const summarizeResult = shouldSummarize(query, results);
+    const summarizeResult = await shouldSummarize(query, results);
     const isRateLimited = checkRateLimit(query);
 
     const isManualMode = config.SUMMARY_MODE === "manual";

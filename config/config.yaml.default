@@ -39,10 +39,17 @@ MAX_TOKENS: 750
 # Options:
 # 1. "auto" (automatically generate summaries when conditions are met)
 # 2. "manual" (only generate summary on clicking the "Show Summary" button)
+# 3. "smart" (use AI to determine if a summary is needed)
 SUMMARY_MODE: manual
 
 # Number of search results to summarize
 MAX_RESULTS_FOR_SUMMARY: 7
+
+# AI model to use for query classification in "smart" mode
+# This should be a smaller model that supports function/tool calling
+# For OpenRouter: models like "google/gemini-flash-1.5-8b" or similar
+# For Ollama: models that support tool calling like "llama3.1:8b" or similar
+CLASSIFICATION_MODEL_ID: "llama3.2:1b"
 
 #################### Connection Settings ###########################################
 
