@@ -5,14 +5,14 @@ const yaml = require("js-yaml");
 const requiredConfigProperties = [
   "ENGINE_NAME",
   "ENGINE_URL",
-  "AI_PROVIDER",
-  "MODEL_ID",
-  "OLLAMA_URL",
+  "SUMMARIZER_LLM_URL",
+  "SUMMARIZER_MODEL_ID",
+  "CLASSIFIER_LLM_URL",
+  "CLASSIFIER_MODEL_ID",
   "MAX_TOKENS",
   "RATE_LIMIT_MS",
   "SUMMARY_MODE",
   "MAX_RESULTS_FOR_SUMMARY",
-  "CLASSIFICATION_MODEL_ID",
   "MODIFY_CSP_HEADERS",
   "TRUST_PROXY",
   "PROXY_IP_RANGE",
@@ -79,10 +79,11 @@ try {
   }
 
   // Check if all required environment variables are present based on AI provider
-  const aiProvider = fileConfig.AI_PROVIDER || process.env.AI_PROVIDER;
+  const isOpenRouter =
+    fileConfig.SUMMARIZER_LLM_URL.includes("openrouter") || fileConfig.CLASSIFIER_LLM_URL.includes("openrouter");
   let missingEnvVars = [];
 
-  if (aiProvider === "openrouter") {
+  if (isOpenRouter) {
     missingEnvVars = ["OPENROUTER_API_KEY"].filter((envVar) => !process.env[envVar]);
   }
 
@@ -100,7 +101,7 @@ try {
   }
 
   // Only add OpenRouter API key if using OpenRouter
-  if (config.AI_PROVIDER === "openrouter") {
+  if (isOpenRouter) {
     config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
   }
 

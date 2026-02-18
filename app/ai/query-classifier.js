@@ -3,12 +3,12 @@ const https = require("https");
 const config = require("../settings");
 const { log } = require("../utils/logger");
 
-const CLASSIFICATION_TIMEOUT = 20000; // 10 seconds is enough for classification
+const CLASSIFICATION_TIMEOUT = 20000;
 
 const httpsAgent = new https.Agent({
   family: 4,
   keepAlive: true,
-  timeout: CLASSIFICATION_TIMEOUT, // Reduced for classification
+  timeout: CLASSIFICATION_TIMEOUT,
 });
 
 const SYSTEM_PROMPT = `You are a query classifier. Determine if a search query needs AI summarization.
@@ -46,8 +46,7 @@ const TOOL_DEFINITION = {
   },
 };
 
-// Helper function to parse tool call response
-function parseToolCallResponse(toolCall, source) {
+function parseToolCallResponse(toolCall) {
   try {
     const args =
       typeof toolCall.function.arguments === "string"
@@ -61,49 +60,49 @@ function parseToolCallResponse(toolCall, source) {
     } else if (typeof args.needs_summary === "string") {
       needsSummary = args.needs_summary.toLowerCase() === "true";
     } else {
-      log(`[${source}] Unexpected needs_summary type: ${typeof args.needs_summary}`);
+      log(`Unexpected needs_summary type: ${typeof args.needs_summary}`);
       return null;
     }
 
     if (args.reasoning) {
-      log(`[${source}] Classification: ${needsSummary ? "SUMMARIZE" : "SKIP"} - ${args.reasoning}`);
+      log(`Classification: ${needsSummary ? "SUMMARIZE" : "SKIP"} - ${args.reasoning}`);
     }
 
     return needsSummary;
   } catch (error) {
-    log(`[${source}] Error parsing tool call arguments: ${error.message}`);
+    log(`Error parsing tool call arguments: ${error.message}`);
     return null;
   }
 }
 
-// Function to determine if a query needs summarization using OpenRouter
-async function classifyQueryOpenRouter(query) {
-  if (!config.OPENROUTER_API_KEY) {
+async function classifyQuery(query) {
+  if (!config.CLASSIFIER_MODEL_ID) {
+    log("No classification model configured, skipping classification");
+    return null;
+  }
+
+  const isOpenRouter = config.SUMMARIZER_LLM_URL.includes("openrouter");
+
+  if (isOpenRouter && !config.OPENROUTER_API_KEY) {
     log("OpenRouter API key missing for query classification");
-    return null; // Return null to indicate error, not false
+    return null;
   }
 
   try {
     const response = await axios({
       method: "post",
-      url: "https://openrouter.ai/api/v1/chat/completions",
+      url: `${config.CLASSIFIER_LLM_URL}/chat/completions`,
       headers: {
-        Authorization: `Bearer ${config.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${isOpenRouter ? config.OPENROUTER_API_KEY : "ollama"}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "search-results-summarizer",
         "X-Title": "Search Results Summarizer",
       },
       data: {
-        model: config.CLASSIFICATION_MODEL_ID,
+        model: config.CLASSIFIER_MODEL_ID,
         messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: query,
-          },
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: query },
         ],
         tools: [TOOL_DEFINITION],
         tool_choice: {
@@ -112,123 +111,23 @@ async function classifyQueryOpenRouter(query) {
         },
         temperature: 0,
       },
-      httpsAgent,
+      ...(config.CLASSIFIER_LLM_URL.startsWith("https") && { httpsAgent }),
       timeout: CLASSIFICATION_TIMEOUT,
     });
 
     const toolCalls = response.data?.choices?.[0]?.message?.tool_calls;
     if (!toolCalls || toolCalls.length === 0) {
-      log("[OpenRouter] No tool calls in response");
-      return null;
+      log("No tool calls in response");
+      log("Classification failed, defaulting to SUMMARIZE for safety");
+      return true;
     }
 
-    return parseToolCallResponse(toolCalls[0], "OpenRouter");
+    return parseToolCallResponse(toolCalls[0]);
   } catch (error) {
-    log(`[OpenRouter] Error classifying query: ${error.message}`);
-    return null;
-  }
-}
-
-// Function to determine if a query needs summarization using Ollama
-async function classifyQueryOllama(query) {
-  try {
-    const response = await axios({
-      method: "post",
-      url: `${config.OLLAMA_URL}/api/chat`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        model: config.CLASSIFICATION_MODEL_ID,
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT,
-          },
-          {
-            role: "user",
-            content: query,
-          },
-        ],
-        tools: [TOOL_DEFINITION],
-        // Note: Ollama may not support tool_choice, but include it for models that do
-        stream: false,
-        options: {
-          temperature: 0,
-        },
-      },
-      ...(config.OLLAMA_URL.startsWith("https") && { httpsAgent }),
-      timeout: CLASSIFICATION_TIMEOUT,
-    });
-
-    const message = response.data?.message;
-    if (!message) {
-      log("[Ollama] No message in response");
-      return null;
-    }
-
-    // Primary: Check for tool call response
-    if (message.tool_calls && message.tool_calls.length > 0) {
-      return parseToolCallResponse(message.tool_calls[0], "Ollama");
-    }
-
-    // Fallback: Try to parse content as JSON (some Ollama models return JSON directly)
-    if (message.content) {
-      try {
-        const content = typeof message.content === "string" ? JSON.parse(message.content) : message.content;
-
-        let needsSummary;
-        if (typeof content.needs_summary === "boolean") {
-          needsSummary = content.needs_summary;
-        } else if (typeof content.needs_summary === "string") {
-          needsSummary = content.needs_summary.toLowerCase() === "true";
-        } else {
-          log("[Ollama] Invalid needs_summary type in content");
-          return null;
-        }
-
-        if (content.reasoning) {
-          log(`[Ollama] Classification: ${needsSummary ? "SUMMARIZE" : "SKIP"} - ${content.reasoning}`);
-        }
-        return needsSummary;
-      } catch (parseError) {
-        log(`[Ollama] Content is not valid JSON: ${parseError.message}`);
-      }
-    }
-
-    log("[Ollama] Could not extract classification from response");
-    return null;
-  } catch (error) {
-    log(`[Ollama] Error classifying query: ${error.message}`);
-    return null;
-  }
-}
-
-// Main function to classify query based on the configured AI provider
-async function classifyQuery(query) {
-  if (!config.CLASSIFICATION_MODEL_ID) {
-    log("No classification model configured, skipping classification");
-    return null;
-  }
-
-  let result;
-
-  if (config.AI_PROVIDER === "openrouter") {
-    result = await classifyQueryOpenRouter(query);
-  } else if (config.AI_PROVIDER === "ollama") {
-    result = await classifyQueryOllama(query);
-  } else {
-    log(`Unsupported AI provider for query classification: ${config.AI_PROVIDER}`);
-    return null;
-  }
-
-  // If classification failed (null), default to summarizing to be safe
-  if (result === null) {
+    log(`Error classifying query: ${error.message}`);
     log("Classification failed, defaulting to SUMMARIZE for safety");
-    return true; // Better to summarize when uncertain
+    return true;
   }
-
-  return result;
 }
 
 module.exports = {

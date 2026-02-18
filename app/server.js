@@ -82,7 +82,12 @@ app.listen(config.PORT, config.HOST, () => {
   log(`Search Results Summarizer running on port ${config.PORT}`);
   log(`Search Engine: ${config.ENGINE_NAME}`);
   log(`Proxying to: ${config.ENGINE_URL}`);
-  log(`AI Provider: ${config.AI_PROVIDER}`);
-  log(`AI Model: ${config.MODEL_ID}`);
-  log(`Summary: Enabled (Streaming)`);
+  log(`Summarizer LLM URL: ${config.SUMMARIZER_LLM_URL}`);
+  log(`Summarizer Model: ${config.SUMMARIZER_MODEL_ID}`);
+  log(`Summary mode: ${config.SUMMARY_MODE}`);
+
+  if (config.SUMMARY_MODE == "smart") {
+    log(`Classifier LLM URL: ${config.CLASSIFIER_LLM_URL}`);
+    log(`Classifier Model: ${config.CLASSIFIER_MODEL_ID}`);
+  }
 });

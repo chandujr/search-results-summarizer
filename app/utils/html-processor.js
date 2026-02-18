@@ -189,15 +189,13 @@ function injectSummary(html, query, results, summaryTemplate, isManualMode = fal
     date: result.date,
   }));
 
-  let model_name = config.MODEL_ID.split("/")[1] || config.MODEL_ID;
+  let model_name = config.SUMMARIZER_MODEL_ID.split("/")[1] || config.SUMMARIZER_MODEL_ID;
   // make it pretty
   model_name = model_name.replace(/(^|[^a-zA-Z])[a-z]/g, (match) => match.toUpperCase());
-  let provider_name = config.AI_PROVIDER === "openrouter" ? "OpenRouter" : "Ollama";
 
   // Replace placeholders in the template with actual values
   const summaryHTML = summaryTemplate
     .replace(/{{MODEL_NAME}}/g, model_name)
-    .replace(/{{PROVIDER_NAME}}/g, provider_name)
     .replace(/{{QUERY_JSON}}/g, JSON.stringify(sanitizedQuery))
     .replace(/{{RESULTS_JSON}}/g, JSON.stringify(sanitizedResults))
     .replace(/{{IS_MANUAL_MODE}}/g, isManualMode);

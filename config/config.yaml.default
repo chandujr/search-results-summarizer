@@ -14,21 +14,22 @@ ENGINE_URL: http://172.19.0.1:8888
 
 #################### AI configuration ##############################################
 
-# AI provider to use for summarization
-# Options: "openrouter" or "ollama"
-AI_PROVIDER: openrouter
+# URL of the AI provider to use for summarization
+# Openrouter: https://openrouter.ai/api/v1
+# Ollama: http://172.19.0.1:11434/v1
+SUMMARIZER_LLM_URL: https://openrouter.ai/api/v1
 
 # AI model to use for summarization
-# For OpenRouter: Find available models at https://openrouter.ai/models
-# For Ollama: Find model names using `ollama list`. e.g., "mistral-small3.2"
-MODEL_ID: mistralai/mistral-small-3.1-24b-instruct:free
+SUMMARIZER_MODEL_ID: mistralai/mistral-small-3.1-24b-instruct:free
 
-# Ollama instance URL (only used when AI_PROVIDER is "ollama")
-# You may not be able to use "localhost" here, use either:
-# 1. The Docker network gateway IP, e.g.,: `docker network inspect search-results-summarizer_default | grep Gateway`
-# 2. OR, your host machine's IP: `ip route get 1.1.1.1 | awk '{print $7}'`
-# 3. Set the port number as per Ollama config (usually 11434)
-OLLAMA_URL: http://172.19.0.1:11434
+# URL of the AI provider to use for deciding whether to show summary in "smart" mode
+# Openrouter: https://openrouter.ai/api/v1
+# Ollama: http://172.19.0.1:11434/v1
+CLASSIFIER_LLM_URL: https://openrouter.ai/api/v1
+
+# AI model to use for deciding whether to show summary in "smart" mode
+# This should be a model that supports function/tool calling
+CLASSIFIER_MODEL_ID: mistralai/mistral-small-3.1-24b-instruct:free
 
 # Maximum tokens for AI responses
 MAX_TOKENS: 750
@@ -44,12 +45,6 @@ SUMMARY_MODE: manual
 
 # Number of search results to summarize
 MAX_RESULTS_FOR_SUMMARY: 7
-
-# AI model to use for query classification in "smart" mode
-# This should be a smaller model that supports function/tool calling
-# For OpenRouter: models like "google/gemini-flash-1.5-8b" or similar
-# For Ollama: models that support tool calling like "llama3.1:8b" or similar
-CLASSIFICATION_MODEL_ID: "llama3.2:1b"
 
 #################### Connection Settings ###########################################
 

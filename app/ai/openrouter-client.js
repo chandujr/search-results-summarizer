@@ -9,19 +9,21 @@ const httpsAgent = new https.Agent({
   timeout: 60000,
 });
 
-function getOpenRouterClient(refererUrl) {
-  if (!config.OPENROUTER_API_KEY) {
+function getClient(refererUrl) {
+  const isOpenRouter = config.SUMMARIZER_LLM_URL.includes("openrouter");
+
+  if (isOpenRouter && !config.OPENROUTER_API_KEY) {
     throw new Error("OpenRouter API key is missing");
   }
 
   return new OpenAI({
-    apiKey: config.OPENROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: isOpenRouter ? config.OPENROUTER_API_KEY : "ollama",
+    baseURL: config.SUMMARIZER_LLM_URL,
     defaultHeaders: {
       "X-Title": "Search Results Summarizer",
       "HTTP-Referer": refererUrl,
     },
-    httpAgent: httpsAgent,
+    ...(config.SUMMARIZER_LLM_URL.startsWith("https") && { httpAgent: httpsAgent }),
     timeout: 60000,
     maxRetries: 3,
   });
@@ -113,11 +115,6 @@ function handleStreamError(res, error) {
 }
 
 async function createSummaryStream(query, results, res, req) {
-  if (!config.OPENROUTER_API_KEY) {
-    log("API key missing");
-    return res.status(400).json({ error: "API key missing" });
-  }
-
   if (!query || !results) {
     return res.status(400).json({ error: "Missing query or results" });
   }
@@ -142,10 +139,10 @@ async function createSummaryStream(query, results, res, req) {
 
     const prompt = createAIPrompt(query, resultsText, dateToday);
 
-    const openrouter = getOpenRouterClient(refererUrl);
+    const client = getClient(refererUrl);
 
-    const stream = await openrouter.chat.completions.create({
-      model: config.MODEL_ID,
+    const stream = await client.chat.completions.create({
+      model: config.SUMMARIZER_MODEL_ID,
       messages: prompt,
       max_tokens: config.MAX_TOKENS,
       temperature: 0.6,

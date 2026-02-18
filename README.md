@@ -1,6 +1,6 @@
 # Search Results Summarizer
 
-AI-powered search results summary generator that works transparently with existing search engine instances (SearXNG and 4get) using multiple AI providers (OpenRouter and Ollama).
+AI-powered search results summary generator that works transparently with existing search engine instances (SearXNG and 4get) using OpenAI-compatible AI providers.
 
 
 https://github.com/user-attachments/assets/cd004e9b-4f15-4835-ad79-20016964d6d5
@@ -116,21 +116,16 @@ In `config/config.yaml`, configure:
   - Works with both locally installed and public instances
 
 #### AI configuration
-- `AI_PROVIDER`: "openrouter" or "ollama"
-- `MODEL_ID`: AI model ID to use for summarization
-  - For OpenRouter: Find models at https://openrouter.ai/models
-  - For Ollama: Find model names using `ollama list`
-- `OLLAMA_URL`: Only required when using Ollama
+- `SUMMARIZER_LLM_URL`: URL of the AI provider to use for summarization
+- `SUMMARIZER_MODEL_ID`: AI model to use for summarization
+- `CLASSIFIER_LLM_URL`: URL of the AI provider to use for deciding whether to show summary in `smart` mode
+- `CLASSIFIER_MODEL_ID`: AI model to use for deciding whether to show summary in `smart` mode
+  - Should be a model that supports function/tool calling
 - `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
-- `CLASSIFICATION_MODEL_ID`: AI model to use for query classification in "smart" mode
-  - Should be a smaller model that supports function/tool calling
-  - For OpenRouter: models like "google/gemini-flash-1.5-8b" or similar
-  - For Ollama: models that support tool calling like "llama3.1:8b" or similar
 
 #### Performance
 - `SUMMARY_MODE`: "auto" (automatic), "manual" (button-triggered), or "smart" (AI decides when to summarize)
 - `MAX_RESULTS_FOR_SUMMARY`: Number of results to summarize (default: 7)
-- `MAX_TOKENS`: Maximum tokens for AI responses (default: 750)
 
 #### Connection
 - `MODIFY_CSP_HEADERS`: Set to `true` if using public search engine instances that block external scripts (default: `false`)
@@ -148,7 +143,7 @@ Note: The "smart" mode bypasses these filters and uses AI to determine if summar
 
 ## Docker Networking Note
 
-You may not be able to use `localhost` for `ENGINE_URL` or `OLLAMA_URL` since from within a Docker container, `localhost` refers to the container itself, not the host machine.
+You may not be able to use `localhost` for URLs since from within a Docker container, `localhost` refers to the container itself, not the host machine.
 
 To connect to your installed services (search engine or Ollama) running on your host machine:
 
@@ -161,7 +156,6 @@ To connect to your installed services (search engine or Ollama) running on your 
    docker network inspect <network_name> | grep Gateway
    # Example result: "Gateway": "172.19.0.1"
    # Set ENGINE_URL to: http://172.19.0.1:8081 (for search engine)
-   # Set OLLAMA_URL to: http://172.19.0.1:11434 (for Ollama)
    ```
 
 2. **Use your host machine's IP address**:
@@ -170,7 +164,6 @@ To connect to your installed services (search engine or Ollama) running on your 
    ip route get 1.1.1.1 | awk '{print $7}'
    # Example result: 192.168.1.100
    # Set ENGINE_URL to: http://192.168.1.100:8081 (for search engine)
-   # Set OLLAMA_URL to: http://192.168.1.100:11434 (for Ollama)
    ```
 
 ## Usage
