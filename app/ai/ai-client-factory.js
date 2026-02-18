@@ -1,4 +1,4 @@
-const openaiClient = require("./openrouter-client");
+const openaiClient = require("./openai-client");
 const { log } = require("../utils/logger");
 
 function getAIClient() {
