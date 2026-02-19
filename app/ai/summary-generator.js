@@ -1,10 +1,12 @@
 const { log } = require("../utils/logger");
 const config = require("../settings");
+const { classifyQuery } = require("./query-classifier");
 
-function shouldSummarize(query, results) {
+async function shouldSummarize(query, results) {
   const excludeWords = config.EXCLUDE_WORDS;
   const excludeOverrides = config.EXCLUDE_OVERRIDES;
   const isManualMode = config.SUMMARY_MODE === "manual";
+  const isSmartMode = config.SUMMARY_MODE === "smart";
 
   if (isManualMode) {
     return {
@@ -13,6 +15,31 @@ function shouldSummarize(query, results) {
     };
   }
 
+  // In smart mode, use AI to determine if summarization is needed
+  if (isSmartMode) {
+    if (results.length === 0) {
+      return {
+        shouldSummarize: false,
+        reason: "No search results found",
+      };
+    }
+
+    try {
+      const needsSummary = await classifyQuery(query);
+      return {
+        shouldSummarize: needsSummary,
+        reason: needsSummary ? null : "AI determined this query doesn't need summarization",
+      };
+    } catch (error) {
+      log(`Error in smart classification: ${error.message}`);
+      return {
+        shouldSummarize: false,
+        reason: "Error in query classification",
+      };
+    }
+  }
+
+  // Original auto mode logic
   const keywords = query.trim().split(/\s+/);
   const keywordCount = keywords.length;
   const resultCount = results.length;

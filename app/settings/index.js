@@ -5,21 +5,22 @@ const yaml = require("js-yaml");
 const requiredConfigProperties = [
   "ENGINE_NAME",
   "ENGINE_URL",
-  "OPENROUTER_MODEL",
-  "MAX_RESULTS_FOR_SUMMARY",
-  "SUMMARY_MODE",
-  "RATE_LIMIT_MS",
+  "SUMMARIZER_LLM_URL",
+  "SUMMARIZER_MODEL_ID",
+  "CLASSIFIER_LLM_URL",
+  "CLASSIFIER_MODEL_ID",
   "MAX_TOKENS",
-  "MIN_KEYWORD_COUNT",
-  "MIN_RESULT_COUNT",
+  "RATE_LIMIT_MS",
+  "SUMMARY_MODE",
+  "MAX_RESULTS_FOR_SUMMARY",
   "MODIFY_CSP_HEADERS",
   "TRUST_PROXY",
   "PROXY_IP_RANGE",
+  "MIN_KEYWORD_COUNT",
+  "MIN_RESULT_COUNT",
   "EXCLUDE_WORDS",
   "EXCLUDE_OVERRIDES",
 ];
-
-const requiredEnvVars = ["OPENROUTER_API_KEY"];
 
 const configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.yaml";
 const envFilePath = "/config/.env";
@@ -77,14 +78,32 @@ try {
     throw new Error(`Missing required configuration properties: ${missingProperties.join(", ")}`);
   }
 
-  // Check if all required environment variables are present
-  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+  // Check if all required environment variables are present based on AI provider
+  const isOpenRouter =
+    fileConfig.SUMMARIZER_LLM_URL.includes("openrouter") || fileConfig.CLASSIFIER_LLM_URL.includes("openrouter");
+  let missingEnvVars = [];
+
+  if (isOpenRouter) {
+    missingEnvVars = ["OPENROUTER_API_KEY"].filter((envVar) => !process.env[envVar]);
+  }
+
   if (missingEnvVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
   }
 
   config = fileConfig;
-  config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+
+  if (typeof config.EXCLUDE_WORDS === "string") {
+    config.EXCLUDE_WORDS = config.EXCLUDE_WORDS.split(",");
+  }
+  if (typeof config.EXCLUDE_OVERRIDES === "string") {
+    config.EXCLUDE_OVERRIDES = config.EXCLUDE_OVERRIDES.split(",");
+  }
+
+  // Only add OpenRouter API key if using OpenRouter
+  if (isOpenRouter) {
+    config.OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  }
 
   // Override config properties with environment variables if they exist
   requiredConfigProperties.forEach((prop) => {

@@ -1,45 +1,52 @@
 # NOTE: These values can be overwritten using environment variables
 
-# Search engine configuration
+####################  Search engine configuration ##################################
+
 # Options: "searxng" or "4get"
 ENGINE_NAME: searxng
 
 # URL of your search engine instance
 # You may not be able to use "localhost" here, use either:
-# 1. Your host machine's IP: ip route get 1.1.1.1 | awk '{print $7}'
-# 2. OR, the Docker network gateway IP, e.g.,: docker network inspect search-results-summarizer_default | grep Gateway
+# 1. The Docker network gateway IP, e.g.,: `docker network inspect search-results-summarizer_default | grep Gateway`
+# 2. OR, your host machine's IP: `ip route get 1.1.1.1 | awk '{print $7}'`
 # 3. Set the port number as per the engine
-ENGINE_URL: http://192.168.1.100:8888
+ENGINE_URL: http://172.19.0.1:8888
 
-# AI model configuration
+#################### AI configuration ##############################################
+
+# URL of the AI provider to use for summarization
+# Openrouter: https://openrouter.ai/api/v1
+# Ollama: http://172.19.0.1:11434/v1
+SUMMARIZER_LLM_URL: https://openrouter.ai/api/v1
+
 # AI model to use for summarization
-# Find available models at: https://openrouter.ai/models
-OPENROUTER_MODEL: mistralai/mistral-small-3.1-24b-instruct:free
+SUMMARIZER_MODEL_ID: mistralai/mistral-small-3.1-24b-instruct:free
 
-# Feature settings
+# URL of the AI provider to use for deciding whether to show summary in "smart" mode
+# Openrouter: https://openrouter.ai/api/v1
+# Ollama: http://172.19.0.1:11434/v1
+CLASSIFIER_LLM_URL: https://openrouter.ai/api/v1
 
-# Number of search results to summarize
-MAX_RESULTS_FOR_SUMMARY: 7
-
-# Performance settings
-# Rate limit in milliseconds between requests (to avoid spam)
-RATE_LIMIT_MS: 1000
+# AI model to use for deciding whether to show summary in "smart" mode
+# This should be a model that supports function/tool calling
+CLASSIFIER_MODEL_ID: mistralai/mistral-small-3.1-24b-instruct:free
 
 # Maximum tokens for AI responses
 MAX_TOKENS: 750
+
+#################### Performance settings ##########################################
 
 # Summary generation mode
 # Options:
 # 1. "auto" (automatically generate summaries when conditions are met)
 # 2. "manual" (only generate summary on clicking the "Show Summary" button)
+# 3. "smart" (use AI to determine if a summary is needed)
 SUMMARY_MODE: manual
 
-# Summarization thresholds (these are ignored when SUMMARY_MODE is set to "manual")
-# Minimum number of keywords required in a search query to generate a summary
-MIN_KEYWORD_COUNT: 3
+# Number of search results to summarize
+MAX_RESULTS_FOR_SUMMARY: 7
 
-# Minimum number of search results required to generate a summary
-MIN_RESULT_COUNT: 3
+#################### Connection Settings ###########################################
 
 # Content Security Policy modifications
 # When enabled, modifies CSP headers to allow summary functionality with external instances
@@ -50,7 +57,6 @@ MODIFY_CSP_HEADERS: false
 # Proxy configuration
 # Set to true when running behind a reverse proxy
 # This allows Express to correctly use the X-Forwarded-For header for rate limiting
-# When enabled, we specifically trust only the cloud provider's proxy to prevent rate limit bypass
 # Options: true (trust proxy headers), false (don't trust proxy headers)
 TRUST_PROXY: false
 
@@ -62,44 +68,20 @@ TRUST_PROXY: false
 # - ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"] (multiple ranges)
 PROXY_IP_RANGE: "10.0.0.0/8"
 
-# Summarization filters (these are ignored when SUMMARY_MODE is set to "manual")
+# Rate limit in milliseconds between requests (to avoid spam)
+RATE_LIMIT_MS: 1000
+
+#################### Summarization filters #########################################
+# These are ignored when SUMMARY_MODE is set to "manual"
+
+# Minimum number of keywords required in a search query to generate a summary
+MIN_KEYWORD_COUNT: 3
+
+# Minimum number of search results required to generate a summary
+MIN_RESULT_COUNT: 3
+
 # Words in search queries that prevent summarization
-EXCLUDE_WORDS:
-  - "github"
-  - "gitlab"
-  - "download"
-  - "repository"
-  - "repo"
-  - "link"
-  - "url"
-  - "tool"
-  - "software"
-  - "app"
-  - "library"
-  - "framework"
+EXCLUDE_WORDS: "github,gitlab,download,repository,repo,link,url,tool,software,app,library,framework"
 
 # Words that override the exclude list and force summarization
-EXCLUDE_OVERRIDES:
-  - "what"
-  - "why"
-  - "how"
-  - "when"
-  - "where"
-  - "who"
-  - "which"
-  - "can"
-  - "will"
-  - "would"
-  - "could"
-  - "should"
-  - "is"
-  - "are"
-  - "was"
-  - "were"
-  - "do"
-  - "does"
-  - "did"
-  - "example"
-  - "explain"
-  - "simplify"
-  - "eli5"
+EXCLUDE_OVERRIDES: "what,why,how,when,where,who,which,can,will,would,could,should,is,are,was,were,do,does,did,example,explain,simplify,eli5"
