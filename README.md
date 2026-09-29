@@ -179,6 +179,19 @@ Most modern browsers allow you to add this as a search engine.
 - No data is stored by this proxy
 - Consider privacy implications before use
 
+## Support Me
+
+If you find this project helpful, please consider supporting me:
+
+<table style="border:none;text-align: center">
+  <tr>
+    <td><a href='https://ko-fi.com/N4N61MYBBT' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></td>
+  </tr>
+  <tr>
+    <td><img src="assets/qr-code.png" width="150"/></td>
+  </tr>
+</table>
+
 ## License
 
 AGPL-3.0
